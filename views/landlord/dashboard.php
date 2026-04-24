@@ -1,3 +1,6 @@
+<div class="bg-yellow-100 p-2 text-xs text-yellow-800 text-center font-mono">
+    DEBUG: User ID: <?= $_SESSION['user_id'] ?? 'N/A' ?> | Role: <?= $_SESSION['role'] ?? 'N/A' ?> (Landlord Dashboard)
+</div>
 <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold">My Properties</h1>
     <a href="<?= APP_URL ?>/landlord/add-property" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-blue-700 transition">+ Add Property</a>

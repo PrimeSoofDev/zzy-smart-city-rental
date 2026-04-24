@@ -12,6 +12,9 @@ class LandlordController extends Controller {
         $stmt->execute([$userId]);
         $status = $stmt->fetchColumn();
 
+        // Use trim() to avoid issues with whitespace and handle null/false
+        $status = ($status !== false) ? trim($status) : null;
+
         if ($status !== 'approved') {
             $this->redirect('landlord/verify');
         }

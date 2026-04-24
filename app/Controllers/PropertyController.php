@@ -1,8 +1,24 @@
 <?php
 class PropertyController extends Controller {
     public function index() {
+        $userId = $_SESSION['user_id'] ?? null;
+        $role = $_SESSION['role'] ?? null;
+
+        if ($userId && $role) {
+            if ($role === 'Landlord') {
+                $this->redirect('landlord/dashboard');
+            } elseif ($role === 'Tenant') {
+                $this->redirect('tenant/dashboard');
+            } elseif ($role === 'Admin') {
+                $this->redirect('admin/dashboard');
+            }
+        }
+
         $propModel = new Property();
         $properties = $propModel->getAllApproved();
+
+        // Use a public landing page view instead of the tenant dashboard
+        // For now, we will keep the view but it's technically the 'public' view
         $this->view('tenant/dashboard', ['properties' => $properties]);
     }
 

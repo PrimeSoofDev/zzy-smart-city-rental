@@ -47,7 +47,7 @@ class AuthController extends Controller {
     private function getDashboardByRole($role) {
         switch($role) {
             case 'Tenant': return 'tenant/dashboard';
-            case 'Landlord': return 'landlord/verify';
+            case 'Landlord': return 'landlord/dashboard';
             case 'Staff': return 'staff/dashboard';
             case 'Admin': return 'admin/dashboard';
             case 'Lawyer': return 'lawyer/dashboard';

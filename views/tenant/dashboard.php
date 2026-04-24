@@ -1,3 +1,6 @@
+<div class="bg-yellow-100 p-2 text-xs text-yellow-800 text-center font-mono">
+    DEBUG: User ID: <?= $_SESSION['user_id'] ?? 'N/A' ?> | Role: <?= $_SESSION['role'] ?? 'N/A' ?> (Tenant Dashboard)
+</div>
 <h1 class="text-3xl font-bold mb-8">Find Your Next Home</h1>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
     <?php if(empty($properties)): ?>

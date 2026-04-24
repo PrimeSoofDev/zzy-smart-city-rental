@@ -24,6 +24,8 @@ $router->add('auth/login', 'AuthController', 'login');
 $router->add('auth/signup', 'AuthController', 'signup');
 $router->add('auth/logout', 'AuthController', 'logout');
 $router->add('tenant/dashboard', 'TenantController', 'dashboard');
+$router->add('tenant/verify', 'TenantController', 'verify');
+$router->add('tenant/verify-submit', 'TenantController', 'submitVerification');
 $router->add('tenant/request-rental', 'TenantController', 'requestRental');
 $router->add('landlord/dashboard', 'LandlordController', 'dashboard');
 $router->add('landlord/verify', 'LandlordController', 'verify');
