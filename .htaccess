@@ -1,0 +1,6 @@
+Options -Indexes
+RewriteEngine On
+
+# If the request is not already for the public folder, rewrite it to public/
+RewriteCond %{REQUEST_URI} !^/zzy_rental/public/
+RewriteRule ^(.*)$ public/$1 [L]
