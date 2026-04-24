@@ -53,9 +53,9 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 text-right">
-                            <a href="<?= APP_URL ?>/admin/edit-user?id=<?= $u['id'] ?>" class="text-gray-400 hover:text-blue-600 transition-colors px-2">
+                            <button onclick="openUserModal(<?= htmlspecialchars(json_encode($u)) ?>)" class="text-gray-400 hover:text-blue-600 transition-colors px-2">
                                 <i class="fas fa-edit"></i>
-                            </a>
+                            </button>
                             <form action="<?= APP_URL ?>/admin/delete-user" method="POST" class="inline-block">
                                 <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                 <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors px-2" onclick="return confirm('Are you sure you want to delete this user?')">
@@ -69,3 +69,94 @@
         </table>
     </div>
 </div>
+
+<!-- User Management Modal -->
+<div id="userModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-95 opacity-0" id="modalContent">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-800">Manage User</h3>
+            <button onclick="closeUserModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-6">
+            <div class="flex items-center gap-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <div id="modalUserAvatar" class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg"></div>
+                <div>
+                    <p id="modalUserName" class="font-bold text-gray-800"></p>
+                    <p id="modalUserEmail" class="text-sm text-gray-500"></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">User Status</p>
+                <div class="flex flex-wrap gap-2">
+                    <form action="<?= APP_URL ?>/admin/approve-user" method="POST" class="inline">
+                        <input type="hidden" name="user_id" id="modalUserId">
+                        <input type="hidden" name="role" id="modalUserRole">
+                        <button class="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-700 transition-all flex items-center gap-2">
+                            <i class="fas fa-check-circle"></i> Approve
+                        </button>
+                    </form>
+                    <form action="<?= APP_URL ?>/admin/reject-user" method="POST" class="inline">
+                        <input type="hidden" name="user_id" id="modalUserIdReject">
+                        <button class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-700 transition-all flex items-center gap-2">
+                            <i class="fas fa-ban"></i> Reject/Ban
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-gray-100">
+                <a href="#" id="modalUserEditLink" class="block w-full text-center bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all">
+                    <i class="fas fa-user-edit mr-2"></i> Full Profile Edit
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openUserModal(user) {
+    const modal = document.getElementById('userModal');
+    const content = document.getElementById('modalContent');
+
+    document.getElementById('modalUserName').textContent = user.username;
+    document.getElementById('modalUserEmail').textContent = user.email;
+    document.getElementById('modalUserAvatar').textContent = user.username.charAt(0).toUpperCase();
+    document.getElementById('modalUserId').value = user.id;
+    document.getElementById('modalUserIdReject').value = user.id;
+    document.getElementById('modalUserRole').value = user.role_name;
+
+    // For the edit link, since we can't put a variable inside an attribute easily in HTML, we handle it via JS
+    const editLink = document.getElementById('modalUserEditLink');
+    if (editLink) {
+        editLink.href = `<?= APP_URL ?>/admin/edit-user?id=${user.id}`;
+    }
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+function closeUserModal() {
+    const modal = document.getElementById('userModal');
+    const content = document.getElementById('modalContent');
+
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 200);
+}
+
+// Close on outside click
+window.onclick = function(event) {
+    const modal = document.getElementById('userModal');
+    if (event.target == modal) {
+        closeUserModal();
+    }
+}
+</script>

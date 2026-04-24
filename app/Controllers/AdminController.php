@@ -180,7 +180,41 @@ class AdminController extends Controller {
         $this->renderAdminView('add_user', ['defaultRole' => $defaultRole]);
     }
 
-    public function approveLandlord() {
+    public function approveUser() {
+        RbacMiddleware::check(['Admin']);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_POST['user_id'] ?? null;
+            $role = $_POST['role'] ?? null;
+            if (!$userId) {
+                $_SESSION['error'] = "User ID is required.";
+                $this->redirect('admin/verifications');
+            }
+
+            $db = Database::getInstance()->getConnection();
+            $db->beginTransaction();
+            try {
+                if ($role === 'Landlord') {
+                    $stmt = $db->prepare("UPDATE landlord_profiles SET verification_status = 'approved' WHERE user_id = ?");
+                    $stmt->execute([$userId]);
+                } elseif ($role === 'Tenant') {
+                    $stmt = $db->prepare("UPDATE tenant_profiles SET verification_status = 'approved' WHERE user_id = ?");
+                    $stmt->execute([$userId]);
+                }
+
+                $stmtUser = $db->prepare("UPDATE users SET status = 'verified' WHERE id = ?");
+                $stmtUser->execute([$userId]);
+
+                $db->commit();
+                $_SESSION['success'] = "User approved successfully.";
+            } catch (Exception $e) {
+                $db->rollBack();
+                $_SESSION['error'] = "Error approving user: " . $e->getMessage();
+            }
+            $this->redirect($_SERVER['HTTP_REFERER'] ?? 'admin/verifications');
+        }
+    }
+
+    public function rejectUser() {
         RbacMiddleware::check(['Admin']);
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userId = $_POST['user_id'] ?? null;
@@ -190,21 +224,14 @@ class AdminController extends Controller {
             }
 
             $db = Database::getInstance()->getConnection();
-            $db->beginTransaction();
             try {
-                $stmt = $db->prepare("UPDATE landlord_profiles SET verification_status = 'approved' WHERE user_id = ?");
+                $stmt = $db->prepare("UPDATE users SET status = 'rejected' WHERE id = ?");
                 $stmt->execute([$userId]);
-
-                $stmtUser = $db->prepare("UPDATE users SET status = 'verified' WHERE id = ?");
-                $stmtUser->execute([$userId]);
-
-                $db->commit();
-                $_SESSION['success'] = "Landlord approved successfully.";
+                $_SESSION['success'] = "User rejected/banned successfully.";
             } catch (Exception $e) {
-                $db->rollBack();
-                $_SESSION['error'] = "Error approving landlord: " . $e->getMessage();
+                $_SESSION['error'] = "Error rejecting user: " . $e->getMessage();
             }
-            $this->redirect('admin/verifications');
+            $this->redirect($_SERVER['HTTP_REFERER'] ?? 'admin/verifications');
         }
     }
 

@@ -67,16 +67,31 @@ require_once "../config/config.php";
                 </div>
 
                 <div class="pl-4 space-y-1 mt-2 border-l border-slate-800 ml-6">
-                    <a href="<?= APP_URL ?>/admin/users?role=Tenant" class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all hover:bg-slate-800 hover:text-white text-sm">
-                        <i class="fas fa-user-tag w-4"></i> <span>Tenants</span>
-                    </a>
-                    <a href="<?= APP_URL ?>/admin/users?role=Landlord" class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all hover:bg-slate-800 hover:text-white text-sm">
-                        <i class="fas fa-house-user w-4"></i> <span>Landlords</span>
+                    <a href="<?= APP_URL ?>/admin/users" class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all hover:bg-slate-800 hover:text-white text-sm">
+                        <i class="fas fa-users w-4"></i> <span>All Users</span>
                     </a>
                 </div>
             </div>
 
-            <p class="text-xs font-semibold text-slate-500 uppercase px-4 mt-6 mb-2 tracking-wider">Properties</p>
+            <p class="text-xs font-semibold text-slate-500 uppercase px-4 mt-6 mb-2 tracking-wider">Verifications</p>
+            <div class="relative group">
+                <button class="w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all hover:bg-slate-800 hover:text-white text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-shield-check w-5 text-green-400"></i> <span>Verification</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180"></i>
+                </button>
+                <div class="absolute left-0 w-full bg-slate-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 translate-y-2 group-hover:translate-y-0 z-50 border border-slate-700">
+                    <div class="p-2 space-y-1">
+                        <a href="<?= APP_URL ?>/admin/users?role=Tenant" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all hover:bg-blue-600 hover:text-white text-slate-400">
+                            <i class="fas fa-user-tag w-4"></i> <span>Approve Tenants</span>
+                        </a>
+                        <a href="<?= APP_URL ?>/admin/users?role=Landlord" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all hover:bg-blue-600 hover:text-white text-slate-400">
+                            <i class="fas fa-house-user w-4"></i> <span>Approve Landlords</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
             <a href="<?= APP_URL ?>/admin/properties" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
                 <i class="fas fa-list w-5"></i> <span>All Properties</span>
             </a>

@@ -46,6 +46,8 @@ $router->add('auth/set-password', 'AuthController', 'setPassword');
 $router->add('admin/landlords', 'AdminController', 'landlords');
 $router->add('admin/edit-user', 'AdminController', 'editLandlord');
 $router->add('admin/update-user', 'AdminController', 'updateLandlord');
+$router->add('admin/approve-user', 'AdminController', 'approveUser');
+$router->add('admin/reject-user', 'AdminController', 'rejectUser');
 $router->add('admin/approve-landlord', 'AdminController', 'approveLandlord');
 $router->add('admin/delete-user', 'AdminController', 'deleteLandlord');
 $router->add('admin/manageUser', 'AdminController', 'manageUser');
