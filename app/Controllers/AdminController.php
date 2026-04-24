@@ -82,8 +82,8 @@ class AdminController extends Controller {
         RbacMiddleware::check(['Admin']);
         $db = Database::getInstance()->getConnection();
 
-        $tenants = $db->query("SELECT tp.*, u.username FROM tenant_profiles tp JOIN users u ON tp.user_id = u.id WHERE tp.verification_status = 'pending'")->fetchAll();
-        $landlords = $db->query("SELECT lp.*, u.username FROM landlord_profiles lp JOIN users u ON lp.user_id = u.id WHERE lp.verification_status = 'pending'")->fetchAll();
+        $tenants = $db->query("SELECT tp.*, u.username FROM tenant_profiles tp JOIN users u ON tp.user_id = u.id")->fetchAll();
+        $landlords = $db->query("SELECT lp.*, u.username FROM landlord_profiles lp JOIN users u ON lp.user_id = u.id")->fetchAll();
 
         $this->renderAdminView('verifications', [
             'tenants' => $tenants,
@@ -210,7 +210,7 @@ class AdminController extends Controller {
                 $db->rollBack();
                 $_SESSION['error'] = "Error approving user: " . $e->getMessage();
             }
-            $this->redirect($_SERVER['HTTP_REFERER'] ?? 'admin/verifications');
+            $this->redirect('admin/verifications');
         }
     }
 
@@ -218,20 +218,75 @@ class AdminController extends Controller {
         RbacMiddleware::check(['Admin']);
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userId = $_POST['user_id'] ?? null;
+            $role = $_POST['role'] ?? null;
             if (!$userId) {
                 $_SESSION['error'] = "User ID is required.";
                 $this->redirect('admin/verifications');
             }
 
             $db = Database::getInstance()->getConnection();
+            $db->beginTransaction();
             try {
+                if ($role === 'Landlord') {
+                    $stmt = $db->prepare("UPDATE landlord_profiles SET verification_status = 'rejected' WHERE user_id = ?");
+                    $stmt->execute([$userId]);
+                } elseif ($role === 'Tenant') {
+                    $stmt = $db->prepare("UPDATE tenant_profiles SET verification_status = 'rejected' WHERE user_id = ?");
+                    $stmt->execute([$userId]);
+                }
+
                 $stmt = $db->prepare("UPDATE users SET status = 'rejected' WHERE id = ?");
                 $stmt->execute([$userId]);
+
+                $db->commit();
                 $_SESSION['success'] = "User rejected/banned successfully.";
             } catch (Exception $e) {
+                $db->rollBack();
                 $_SESSION['error'] = "Error rejecting user: " . $e->getMessage();
             }
-            $this->redirect($_SERVER['HTTP_REFERER'] ?? 'admin/verifications');
+            $this->redirect('admin/verifications');
+        }
+    }
+
+    public function approveProperty() {
+        RbacMiddleware::check(['Admin']);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $propertyId = $_POST['property_id'] ?? null;
+            if (!$propertyId) {
+                $_SESSION['error'] = "Property ID is required.";
+                $this->redirect('admin/properties');
+            }
+
+            $db = Database::getInstance()->getConnection();
+            try {
+                $stmt = $db->prepare("UPDATE properties SET status = 'approved' WHERE id = ?");
+                $stmt->execute([$propertyId]);
+                $_SESSION['success'] = "Property approved successfully.";
+            } catch (Exception $e) {
+                $_SESSION['error'] = "Error approving property: " . $e->getMessage();
+            }
+            $this->redirect('admin/properties');
+        }
+    }
+
+    public function rejectProperty() {
+        RbacMiddleware::check(['Admin']);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $propertyId = $_POST['property_id'] ?? null;
+            if (!$propertyId) {
+                $_SESSION['error'] = "Property ID is required.";
+                $this->redirect('admin/properties');
+            }
+
+            $db = Database::getInstance()->getConnection();
+            try {
+                $stmt = $db->prepare("UPDATE properties SET status = 'rejected' WHERE id = ?");
+                $stmt->execute([$propertyId]);
+                $_SESSION['success'] = "Property rejected successfully.";
+            } catch (Exception $e) {
+                $_SESSION['error'] = "Error rejecting property: " . $e->getMessage();
+            }
+            $this->redirect('admin/properties');
         }
     }
 

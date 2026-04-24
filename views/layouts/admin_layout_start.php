@@ -165,3 +165,24 @@ require_once "../config/config.php";
 
         <!-- PAGE CONTENT -->
         <main class="p-6 flex-grow">
+            <?php if (isset($_SESSION['success'])): ?>
+                <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-800 rounded-r-xl shadow-sm flex items-center gap-3 animate-fade-in">
+                    <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                    <p class="text-sm font-medium"><?= $_SESSION['success'] ?></p>
+                    <button onclick="this.parentElement.remove()" class="ml-auto text-green-600 hover:text-green-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <?php unset($_SESSION['success']); ?>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['error'])): ?>
+                <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-800 rounded-r-xl shadow-sm flex items-center gap-3 animate-fade-in">
+                    <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+                    <p class="text-sm font-medium"><?= $_SESSION['error'] ?></p>
+                    <button onclick="this.parentElement.remove()" class="ml-auto text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>

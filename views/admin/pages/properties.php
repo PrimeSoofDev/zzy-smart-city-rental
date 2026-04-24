@@ -39,6 +39,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
+                <?php foreach($properties as $p): ?>
                 <tr class="hover:bg-gray-50 transition-colors">
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
@@ -46,43 +47,35 @@
                                 <img src="https://via.placeholder.com/48" alt="Prop">
                             </div>
                             <div>
-                                <p class="font-medium text-gray-800">Modern Penthouse</p>
-                                <p class="text-[10px] text-gray-400 uppercase">Lagos, Nigeria</p>
+                                <p class="font-medium text-gray-800"><?= htmlspecialchars($p['title']) ?></p>
+                                <p class="text-[10px] text-gray-400 uppercase"><?= htmlspecialchars($p['address']) ?></p>
                             </div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">John Doe</td>
-                    <td class="px-6 py-4 font-bold text-gray-800">$2,500/mo</td>
+                    <td class="px-6 py-4 text-sm text-gray-600"><?= htmlspecialchars($p['landlord_name']) ?></td>
+                    <td class="px-6 py-4 font-bold text-gray-800">$<?= number_format($p['price'], 2) ?>/mo</td>
                     <td class="px-6 py-4">
-                        <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-green-100 text-green-700 uppercase">Approved</span>
+                        <span class="px-2 py-1 text-[10px] font-bold rounded-full <?= $p['status'] === 'approved' ? 'bg-green-100 text-green-700' : ($p['status'] === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700') ?> uppercase">
+                            <?= ucfirst($p['status']) ?>
+                        </span>
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <button class="text-blue-600 hover:text-blue-800 font-bold text-xs mr-3">View</button>
-                        <button class="text-red-600 hover:text-red-800 font-bold text-xs">Suspend</button>
+                        <?php if ($p['status'] === 'pending_verification'): ?>
+                            <form action="admin/approve-property" method="POST" class="inline">
+                                <input type="hidden" name="property_id" value="<?= $p['id'] ?>">
+                                <button class="bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-green-700 mr-2">Approve</button>
+                            </form>
+                            <form action="admin/reject-property" method="POST" class="inline">
+                                <input type="hidden" name="property_id" value="<?= $p['id'] ?>">
+                                <button class="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-700">Reject</button>
+                            </form>
+                        <?php else: ?>
+                            <button class="text-blue-600 hover:text-blue-800 font-bold text-xs mr-3">View</button>
+                            <button class="text-red-600 hover:text-red-800 font-bold text-xs">Suspend</button>
+                        <?php endif; ?>
                     </td>
                 </tr>
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden">
-                                <img src="https://via.placeholder.com/48" alt="Prop">
-                            </div>
-                            <div>
-                                <p class="font-medium text-gray-800">Cozy Studio</p>
-                                <p class="text-[10px] text-gray-400 uppercase">Abuja, Nigeria</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">Sarah Smith</td>
-                    <td class="px-6 py-4 font-bold text-gray-800">$800/mo</td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-yellow-100 text-yellow-700 uppercase">Pending</span>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <button class="bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-green-700 mr-2">Approve</button>
-                        <button class="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-700">Reject</button>
-                    </td>
-                </tr>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>

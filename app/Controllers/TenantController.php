@@ -1,6 +1,23 @@
 <?php
 class TenantController extends Controller {
+    private function checkVerification() {
+        $userId = $_SESSION['user_id'] ?? null;
+        if (!$userId) {
+            $this->redirect('auth/login');
+        }
+
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT verification_status FROM tenant_profiles WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $status = $stmt->fetchColumn();
+
+        if ($status !== 'approved') {
+            $this->redirect('tenant/verify');
+        }
+    }
+
     public function dashboard() {
+        $this->checkVerification();
         RbacMiddleware::check(['Tenant']);
         $propModel = new Property();
         $properties = $propModel->getAllApproved();
@@ -8,6 +25,7 @@ class TenantController extends Controller {
     }
 
     public function requestRental() {
+        $this->checkVerification();
         RbacMiddleware::check(['Tenant']);
         $propertyId = $_GET['id'] ?? null;
         if (!$propertyId) $this->redirect('tenant/dashboard');
@@ -18,4 +36,3 @@ class TenantController extends Controller {
 
         $this->redirect('tenant/dashboard');
     }
-}
