@@ -117,8 +117,17 @@ require_once "../config/config.php";
             </a>
 
             <p class="text-xs font-semibold text-slate-500 uppercase px-4 mt-6 mb-2 tracking-wider">System</p>
-            <a href="<?= APP_URL ?>/admin/notifications" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
-                <i class="fas fa-bell w-5"></i> <span>Notifications</span>
+            <?php
+            require_once __DIR__ . '/../../app/Models/Notification.php';
+            $unreadNotifs = Notification::getUnreadCount($_SESSION['user_id'] ?? 0);
+            ?>
+            <a href="<?= APP_URL ?>/notifications" class="flex items-center justify-between px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'notifications') !== false) ? 'bg-blue-600 text-white shadow-md' : '' ?>">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-bell w-5"></i> <span>Notifications</span>
+                </div>
+                <?php if ($unreadNotifs > 0): ?>
+                    <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><?= $unreadNotifs ?></span>
+                <?php endif; ?>
             </a>
             <a href="<?= APP_URL ?>/admin/logs" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
                 <i class="fas fa-history w-5"></i> <span>Audit Logs</span>
@@ -147,10 +156,12 @@ require_once "../config/config.php";
             </div>
 
             <div class="flex items-center gap-4">
-                <div class="relative p-2 text-gray-500 hover:text-blue-600 cursor-pointer transition-colors">
+                <a href="<?= APP_URL ?>/notifications" class="relative p-2 text-gray-500 hover:text-blue-600 cursor-pointer transition-colors">
                     <i class="fas fa-bell text-xl"></i>
-                    <span class="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold px-1 rounded-full">3</span>
-                </div>
+                    <?php if ($unreadNotifs > 0): ?>
+                        <span class="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold px-1 rounded-full"><?= $unreadNotifs ?></span>
+                    <?php endif; ?>
+                </a>
                 <div class="flex items-center gap-3 pl-4 border-l border-gray-200">
                     <div class="text-right hidden sm:block">
                         <p class="text-sm font-bold text-gray-800 leading-none">Super Admin</p>

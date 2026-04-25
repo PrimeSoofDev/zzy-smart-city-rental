@@ -43,6 +43,19 @@ require_once "../config/config.php";
             <a href="<?= APP_URL ?>/tenant/verify" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'tenant/verify') !== false) ? 'bg-blue-600 text-white shadow-md' : '' ?>">
                 <i class="fas fa-id-card w-5"></i> <span>My Verification</span>
             </a>
+            
+            <?php
+            require_once __DIR__ . '/../../app/Models/Notification.php';
+            $unreadNotifs = Notification::getUnreadCount($_SESSION['user_id'] ?? 0);
+            ?>
+            <a href="<?= APP_URL ?>/notifications" class="flex items-center justify-between px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'notifications') !== false) ? 'bg-blue-600 text-white shadow-md' : '' ?>">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-bell w-5"></i> <span>Notifications</span>
+                </div>
+                <?php if ($unreadNotifs > 0): ?>
+                    <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><?= $unreadNotifs ?></span>
+                <?php endif; ?>
+            </a>
 
             <div class="pt-6 mt-6 border-t border-slate-800">
                 <a href="<?= APP_URL ?>/auth/logout" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 transition-all hover:bg-red-900/20 hover:text-red-300">
@@ -64,6 +77,12 @@ require_once "../config/config.php";
             </div>
 
             <div class="flex items-center gap-4">
+                <a href="<?= APP_URL ?>/notifications" class="relative text-gray-400 hover:text-gray-600 transition p-2">
+                    <i class="fas fa-bell text-xl"></i>
+                    <?php if ($unreadNotifs > 0): ?>
+                        <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                    <?php endif; ?>
+                </a>
                 <div class="flex items-center gap-3 pl-4 border-l border-gray-200">
                     <div class="text-right hidden sm:block">
                         <p class="text-sm font-bold text-gray-800 leading-none"><?= $_SESSION['username'] ?? 'Tenant' ?></p>

@@ -191,10 +191,16 @@ $statusBadge = match($p['status']) {
                     <span><?= htmlspecialchars($p['landlord_phone']) ?></span>
                 </div>
                 <?php endif; ?>
-                <?php if (!empty($p['bvn_nin'])): ?>
+                <?php if (!empty($p['bvn'])): ?>
                 <div class="flex items-center gap-2 text-gray-600">
                     <i class="fas fa-id-card w-4 text-gray-400"></i>
-                    <span class="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded"><?= htmlspecialchars($p['bvn_nin']) ?></span>
+                    <span class="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded"><?= htmlspecialchars($p['bvn']) ?></span>
+                </div>
+                <?php endif; ?>
+                <?php if (!empty($p['landlord_address'])): ?>
+                <div class="flex items-center gap-2 text-gray-600">
+                    <i class="fas fa-map-marker-alt w-4 text-gray-400"></i>
+                    <span class="text-xs truncate"><?= htmlspecialchars($p['landlord_address']) ?></span>
                 </div>
                 <?php endif; ?>
             </div>

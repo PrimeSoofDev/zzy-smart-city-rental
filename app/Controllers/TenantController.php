@@ -85,6 +85,18 @@ class TenantController extends Controller {
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare("INSERT INTO rental_requests (tenant_id, property_id, status) VALUES (?, ?, 'pending')");
         $stmt->execute([$_SESSION['user_id'], $propertyId]);
+        $requestId = $db->lastInsertId();
+
+        // Get landlord ID
+        $landlordStmt = $db->prepare("SELECT landlord_id, title FROM properties WHERE id = ?");
+        $landlordStmt->execute([$propertyId]);
+        $property = $landlordStmt->fetch();
+
+        if ($property) {
+            $tenantName = $_SESSION['username'] ?? 'A tenant';
+            $msg = "{$tenantName} has requested to rent your property: {$property['title']}. Request ID: #{$requestId}.";
+            Notification::send($property['landlord_id'], $msg);
+        }
 
         $this->redirect('tenant/dashboard');
     }

@@ -92,6 +92,13 @@
                         <input type="text" name="location" required placeholder="e.g. Lagos Branch Office"
                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-gray-300">
                     </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-semibold text-gray-600 flex items-center gap-2">
+                            <i class="fas fa-lock text-gray-400 text-xs"></i> Temporary Password
+                        </label>
+                        <input type="password" name="password" required placeholder="Enter secure password"
+                               class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-gray-300">
+                    </div>
                 </div>
             </section>
 
@@ -123,9 +130,9 @@
                             <i class="fas fa-info-circle"></i>
                         </div>
                         <div>
-                            <p class="text-sm font-bold text-blue-800">Auto-Invite System</p>
+                            <p class="text-sm font-bold text-blue-800">Account Ready</p>
                             <p class="text-xs text-blue-600 leading-relaxed">
-                                The system will automatically generate a secure, 24-hour activation token and email it to the user.
+                                Provide the email and the temporary password to the user. They can log in immediately and manage their assignments.
                             </p>
                         </div>
                     </div>

@@ -71,9 +71,9 @@ class LandlordController extends Controller {
         $targetFilePath = $targetDir . $fileName;
 
         if (move_uploaded_file($_FILES["id_doc"]["tmp_name"], $targetFilePath)) {
-            $stmt = $db->prepare("INSERT INTO landlord_profiles (user_id, bvn_nin, address, verification_status)
+            $stmt = $db->prepare("INSERT INTO landlord_profiles (user_id, bvn, address, verification_status)
                                  VALUES (?, ?, ?, 'pending')
-                                 ON DUPLICATE KEY UPDATE bvn_nin = ?, address = ?");
+                                 ON DUPLICATE KEY UPDATE bvn = ?, address = ?");
             $stmt->execute([$userId, $bvn, $address, $bvn, $address]);
 
             $_SESSION['success'] = "Verification documents submitted. Please wait for admin approval.";

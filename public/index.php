@@ -51,6 +51,8 @@ $router->add('admin/users', 'AdminController', 'users');
 $router->add('admin/properties', 'AdminController', 'properties');
 $router->add('admin/verifications', 'AdminController', 'verifications');
 $router->add('admin/transactions', 'AdminController', 'transactions');
+$router->add('admin/requests', 'AdminController', 'requests');
+$router->add('admin/updateRequestStatus', 'AdminController', 'updateRequestStatus');
 $router->add('admin/settings', 'AdminController', 'settings');
 $router->add('admin/updateSettings', 'AdminController', 'updateSettings');
 $router->add('admin/add-user', 'AdminController', 'addUser');
@@ -66,6 +68,7 @@ $router->add('admin/reject-property', 'AdminController', 'rejectProperty');
 $router->add('admin/approve-landlord', 'AdminController', 'approveLandlord');
 $router->add('admin/delete-user', 'AdminController', 'deleteLandlord');
 $router->add('admin/manageUser', 'AdminController', 'manageUser');
-$router->add('admin/logs', 'AdminController', 'logs');
+$router->add('notifications', 'NotificationController', 'index');
+$router->add('notifications/mark-read', 'NotificationController', 'markRead');
 
 $router->dispatch($_SERVER['REQUEST_URI']);

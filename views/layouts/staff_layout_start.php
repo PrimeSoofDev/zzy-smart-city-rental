@@ -69,6 +69,19 @@ require_once "../config/config.php";
                 <i class="fas fa-history w-5 text-blue-400"></i> <span>My History</span>
             </a>
 
+            <?php
+            require_once __DIR__ . '/../../app/Models/Notification.php';
+            $unreadNotifs = Notification::getUnreadCount($_SESSION['user_id'] ?? 0);
+            ?>
+            <a href="<?= APP_URL ?>/notifications" class="flex items-center justify-between px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'notifications') !== false) ? 'active-link' : '' ?>">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-bell w-5 text-violet-400"></i> <span>Notifications</span>
+                </div>
+                <?php if ($unreadNotifs > 0): ?>
+                    <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><?= $unreadNotifs ?></span>
+                <?php endif; ?>
+            </a>
+
             <div class="pt-6 mt-6 border-t border-slate-800">
                 <a href="<?= APP_URL ?>/auth/logout" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 transition-all hover:bg-red-900/20 hover:text-red-300">
                     <i class="fas fa-sign-out-alt w-5"></i> <span>Logout</span>
@@ -89,6 +102,12 @@ require_once "../config/config.php";
             </div>
 
             <div class="flex items-center gap-3">
+                <a href="<?= APP_URL ?>/notifications" class="relative text-gray-400 hover:text-gray-600 transition p-2 mr-2">
+                    <i class="fas fa-bell text-xl"></i>
+                    <?php if ($unreadNotifs > 0): ?>
+                        <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                    <?php endif; ?>
+                </a>
                 <span class="hidden sm:inline-flex items-center gap-2 bg-violet-50 text-violet-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-violet-200">
                     <i class="fas fa-circle text-[8px] text-violet-500 animate-pulse"></i> Active Session
                 </span>

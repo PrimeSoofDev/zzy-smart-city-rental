@@ -99,6 +99,72 @@ class AdminController extends Controller {
         $this->renderAdminView('transactions', ['transactions' => $transactions]);
     }
 
+    public function requests() {
+        RbacMiddleware::check(['Admin']);
+        $db = Database::getInstance()->getConnection();
+        $status = $_GET['status'] ?? 'all';
+
+        $query = "
+            SELECT rr.*, p.title as property_title, p.price,
+                   tu.username as tenant_name,
+                   lu.username as landlord_name
+            FROM rental_requests rr
+            JOIN properties p ON rr.property_id = p.id
+            JOIN users tu ON rr.tenant_id = tu.id
+            JOIN users lu ON p.landlord_id = lu.id
+        ";
+        
+        $params = [];
+        if ($status !== 'all') {
+            $query .= " WHERE rr.status = ?";
+            $params[] = $status;
+        }
+        
+        $query .= " ORDER BY rr.request_date DESC";
+        
+        $stmt = $db->prepare($query);
+        $stmt->execute($params);
+        $requests = $stmt->fetchAll();
+
+        $this->renderAdminView('requests', ['requests' => $requests, 'status' => $status]);
+    }
+
+    public function updateRequestStatus() {
+        RbacMiddleware::check(['Admin']);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $requestId = $_POST['request_id'] ?? null;
+            $status = $_POST['status'] ?? null;
+
+            if ($requestId && $status) {
+                $db = Database::getInstance()->getConnection();
+                try {
+                    $stmt = $db->prepare("UPDATE rental_requests SET status = ? WHERE id = ?");
+                    $stmt->execute([$status, $requestId]);
+
+                    $reqStmt = $db->prepare("SELECT tenant_id, property_id FROM rental_requests WHERE id = ?");
+                    $reqStmt->execute([$requestId]);
+                    $req = $reqStmt->fetch();
+                    if ($req) {
+                        $propStmt = $db->prepare("SELECT landlord_id, title FROM properties WHERE id = ?");
+                        $propStmt->execute([$req['property_id']]);
+                        $prop = $propStmt->fetch();
+                        
+                        $msg = "Rental Request #{$requestId} for '{$prop['title']}' has been updated to: " . strtoupper($status);
+                        Notification::send($req['tenant_id'], $msg);
+                        if ($prop) Notification::send($prop['landlord_id'], $msg);
+                    }
+
+                    $_SESSION['success'] = "Rental request status updated successfully.";
+                } catch (Exception $e) {
+                    $_SESSION['error'] = "Error updating request status: " . $e->getMessage();
+                }
+            } else {
+                $_SESSION['error'] = "Invalid input.";
+            }
+            $this->redirect('admin/requests');
+        }
+    }
+
     public function logs() {
         RbacMiddleware::check(['Admin']);
         $db = Database::getInstance()->getConnection();
@@ -141,14 +207,17 @@ class AdminController extends Controller {
             $email = $this->sanitize($_POST['email']);
             $phone = $this->sanitize($_POST['phone']);
             $location = $this->sanitize($_POST['location']);
+            $password = $_POST['password'] ?? '';
             $role = $_POST['role'];
+
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
             $db = Database::getInstance()->getConnection();
             $db->beginTransaction();
 
             try {
-                $stmt = $db->prepare("INSERT INTO users (username, email, password, status) VALUES (?, ?, ?, 'verified')");
-                $stmt->execute([$username, $email, '']);
+                $stmt = $db->prepare("INSERT INTO users (username, email, phone, password, status) VALUES (?, ?, ?, ?, 'verified')");
+                $stmt->execute([$username, $email, $phone, $hashedPassword]);
                 $userId = $db->lastInsertId();
 
                 $roleStmt = $db->prepare("SELECT id FROM roles WHERE role_name = ?");
@@ -210,6 +279,8 @@ class AdminController extends Controller {
                 $stmtUser = $db->prepare("UPDATE users SET status = 'verified' WHERE id = ?");
                 $stmtUser->execute([$userId]);
 
+                Notification::send($userId, "Congratulations! Your account verification has been APPROVED. You now have full access.");
+
                 $db->commit();
                 $_SESSION['success'] = "User approved successfully.";
             } catch (Exception $e) {
@@ -243,6 +314,8 @@ class AdminController extends Controller {
 
                 $stmt = $db->prepare("UPDATE users SET status = 'rejected' WHERE id = ?");
                 $stmt->execute([$userId]);
+
+                Notification::send($userId, "Your account verification has been REJECTED. Please contact support or re-submit valid documents.");
 
                 $db->commit();
                 $_SESSION['success'] = "User rejected/banned successfully.";

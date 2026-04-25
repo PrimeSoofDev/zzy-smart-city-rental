@@ -104,7 +104,7 @@ class StaffController extends Controller {
         $stmt = $db->prepare("
             SELECT p.*, u.username AS landlord_name, u.email AS landlord_email,
                    u.phone AS landlord_phone,
-                   lp.bvn_nin, lp.address AS landlord_address, lp.verification_status AS landlord_verified
+                   lp.bvn, lp.address AS landlord_address, lp.verification_status AS landlord_verified
             FROM properties p
             JOIN users u ON p.landlord_id = u.id
             LEFT JOIN landlord_profiles lp ON lp.user_id = u.id
@@ -170,6 +170,16 @@ class StaffController extends Controller {
             // Update property status
             $newStatus = ($result === 'approved') ? 'approved' : 'rejected';
             $db->prepare("UPDATE properties SET status = ? WHERE id = ?")->execute([$newStatus, $propertyId]);
+
+            // Notify Landlord
+            $propStmt = $db->prepare("SELECT landlord_id, title FROM properties WHERE id = ?");
+            $propStmt->execute([$propertyId]);
+            $prop = $propStmt->fetch();
+            if ($prop) {
+                $statusMsg = $newStatus === 'approved' ? 'has been APPROVED and is now live' : 'has been REJECTED. Please check the notes';
+                $msg = "Your property '{$prop['title']}' {$statusMsg}.";
+                Notification::send($prop['landlord_id'], $msg);
+            }
 
             $db->commit();
 
