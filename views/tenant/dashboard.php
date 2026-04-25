@@ -141,7 +141,7 @@
                 <p class="text-gray-600 text-sm mb-2 line-clamp-2">${p.description}</p>
                 <div class="flex justify-between items-center mb-3">
                     <span class="text-xl font-extrabold text-blue-600">$${parseFloat(p.price).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                    <a href="<?= APP_URL ?>/tenant/request-rental?id=${p.id}" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-700 transition">Request</a>
+                    <a href="<?= APP_URL ?>/tenant/property?id=${p.id}" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-700 transition">View Details</a>
                 </div>
                 <div class="flex gap-3 text-[10px] text-gray-500 font-medium">
                     <span>🛏️ ${p.rooms} Rooms</span>

@@ -129,6 +129,19 @@ require_once "../config/config.php";
                     <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><?= $unreadNotifs ?></span>
                 <?php endif; ?>
             </a>
+            
+            <?php
+            require_once __DIR__ . '/../../app/Models/Message.php';
+            $unreadMsgs = Message::getUnreadCount($_SESSION['user_id'] ?? 0);
+            ?>
+            <a href="<?= APP_URL ?>/messages" class="flex items-center justify-between px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'messages') !== false) ? 'bg-blue-600 text-white shadow-md' : '' ?>">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-envelope w-5"></i> <span>Chat</span>
+                </div>
+                <?php if ($unreadMsgs > 0): ?>
+                    <span class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><?= $unreadMsgs ?></span>
+                <?php endif; ?>
+            </a>
             <a href="<?= APP_URL ?>/admin/logs" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
                 <i class="fas fa-history w-5"></i> <span>Audit Logs</span>
             </a>
@@ -156,6 +169,12 @@ require_once "../config/config.php";
             </div>
 
             <div class="flex items-center gap-4">
+                <a href="<?= APP_URL ?>/messages" class="relative p-2 text-gray-500 hover:text-blue-600 cursor-pointer transition-colors">
+                    <i class="fas fa-envelope text-xl"></i>
+                    <?php if ($unreadMsgs > 0): ?>
+                        <span class="absolute top-1 right-1 bg-blue-500 text-white text-[10px] font-bold px-1 rounded-full"><?= $unreadMsgs ?></span>
+                    <?php endif; ?>
+                </a>
                 <a href="<?= APP_URL ?>/notifications" class="relative p-2 text-gray-500 hover:text-blue-600 cursor-pointer transition-colors">
                     <i class="fas fa-bell text-xl"></i>
                     <?php if ($unreadNotifs > 0): ?>

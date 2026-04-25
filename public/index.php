@@ -71,4 +71,8 @@ $router->add('admin/manageUser', 'AdminController', 'manageUser');
 $router->add('notifications', 'NotificationController', 'index');
 $router->add('notifications/mark-read', 'NotificationController', 'markRead');
 
+$router->add('messages', 'MessageController', 'index');
+$router->add('messages/fetch', 'MessageController', 'fetchThread');
+$router->add('messages/send', 'MessageController', 'send');
+
 $router->dispatch($_SERVER['REQUEST_URI']);
