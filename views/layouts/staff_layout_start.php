@@ -19,7 +19,7 @@ $logoUrl = SiteSetting::get('logo_url');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $siteName ?> | Staff Portal</title>
     <?php if($faviconUrl): ?>
-    <link rel="icon" type="image/x-icon" href="<?= APP_URL . '/' . $faviconUrl ?>">
+    <link rel="icon" href="<?= APP_URL . '/' . $faviconUrl ?>">
     <?php endif; ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
