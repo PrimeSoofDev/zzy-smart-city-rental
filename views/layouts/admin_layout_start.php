@@ -206,8 +206,9 @@ $logoUrl = SiteSetting::get('logo_url');
                 <div class="flex items-center gap-3">
                     <?php if($logoUrl): ?>
                         <img src="<?= APP_URL . '/' . $logoUrl ?>" class="h-8">
+                    <?php else: ?>
+                        <h2 class="text-lg font-black text-slate-800 hidden sm:block uppercase tracking-tighter"><?= $siteName ?></h2>
                     <?php endif; ?>
-                    <h2 class="text-lg font-black text-slate-800 hidden sm:block uppercase tracking-tighter"><?= $siteName ?></h2>
                 </div>
             </div>
 

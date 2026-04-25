@@ -24,7 +24,7 @@ $siteName = SiteSetting::get('site_name', 'ZZY Rental');
             <?php if($logoUrl): ?>
                 <img src="<?= APP_URL . '/' . $logoUrl ?>" class="h-8">
             <?php else: ?>
-                <span class="text-2xl font-bold text-blue-600">ZZY Rental</span>
+                <span class="text-2xl font-bold text-blue-600"><?= $siteName ?></span>
             <?php endif; ?>
         </a>
         <div class="flex items-center gap-4">

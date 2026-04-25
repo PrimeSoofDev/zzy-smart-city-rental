@@ -36,8 +36,8 @@ $siteName = SiteSetting::get('site_name', 'ZZY Smart Rental');
                     <img src="<?= APP_URL . '/' . $logoUrl ?>" alt="Logo" class="h-10">
                 <?php else: ?>
                     <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-500/20">Z</div>
+                    <span class="text-xl font-black text-white tracking-tighter uppercase"><?= $siteName ?></span>
                 <?php endif; ?>
-                <span class="text-xl font-black text-white tracking-tighter uppercase"><?= $siteName ?></span>
             </a>
             
             <!-- Menu Items -->

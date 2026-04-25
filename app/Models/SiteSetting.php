@@ -11,7 +11,7 @@ class SiteSetting {
         $stmt = $db->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ?");
         $stmt->execute([$key]);
         $result = $stmt->fetch();
-        return $result ? $result['setting_value'] : $default;
+        return ($result && !empty($result['setting_value'])) ? $result['setting_value'] : $default;
     }
 
     public static function getAll() {
