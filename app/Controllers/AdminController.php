@@ -147,7 +147,7 @@ class AdminController extends Controller {
             $db->beginTransaction();
 
             try {
-                $stmt = $db->prepare("INSERT INTO users (username, email, password, status, is_active) VALUES (?, ?, ?, 'verified', 0)");
+                $stmt = $db->prepare("INSERT INTO users (username, email, password, status) VALUES (?, ?, ?, 'verified')");
                 $stmt->execute([$username, $email, '']);
                 $userId = $db->lastInsertId();
 
@@ -157,9 +157,15 @@ class AdminController extends Controller {
                 $db->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)")->execute([$userId, $roleId]);
 
                 if ($role === 'Staff') {
-                    $db->prepare("INSERT INTO staff_profiles (user_id, assigned_location) VALUES (?, ?)")->execute([$userId, $location]);
+                    // Generate a unique staff ID like STAFF-00042
+                    $staffId = 'STAFF-' . str_pad($userId, 5, '0', STR_PAD_LEFT);
+                    $db->prepare("INSERT INTO staff_profiles (user_id, staff_id, department) VALUES (?, ?, ?)")
+                       ->execute([$userId, $staffId, $location]);
                 } elseif ($role === 'Lawyer') {
-                    $db->prepare("INSERT INTO lawyer_profiles (user_id, assigned_location) VALUES (?, ?)")->execute([$userId, $location]);
+                    // Generate a placeholder license number like LAW-00042
+                    $licenseNum = 'LAW-' . str_pad($userId, 5, '0', STR_PAD_LEFT);
+                    $db->prepare("INSERT INTO lawyer_profiles (user_id, license_number, firm_name) VALUES (?, ?, ?)")
+                       ->execute([$userId, $licenseNum, $location]);
                 }
 
                 $token = bin2hex(random_bytes(32));
