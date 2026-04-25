@@ -16,7 +16,11 @@
             <?php if(isset($_SESSION['user_id'])): ?>
                 <span class="text-sm text-gray-500 font-medium"><?= $_SESSION['role'] ?></span>
                 <a href="<?= APP_URL ?>/auth/logout" class="text-red-500 hover:text-red-700 font-semibold">Logout</a>
+            <?php else: ?>
+                <a href="<?= APP_URL ?>/auth/login" class="text-gray-600 hover:text-blue-600 font-semibold">Login</a>
+                <a href="<?= APP_URL ?>/auth/signup" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition">Sign Up</a>
             <?php endif; ?>
+
         </div>
     </nav>
     <main class="container mx-auto p-6">
