@@ -27,7 +27,7 @@
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-1">Price (per Month)</label>
                                 <div class="relative">
-                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₦</span>
                                     <input type="number" name="price" step="0.01" required class="w-full pl-8 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
                             </div>

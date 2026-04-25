@@ -20,6 +20,10 @@ spl_autoload_register(function ($class) {
 $router = new Router();
 
 $router->add('/', 'PropertyController', 'index');
+$router->add('find-homes', 'PropertyController', 'findHomes');
+$router->add('how-it-works', 'PropertyController', 'howItWorks');
+$router->add('pricing', 'PropertyController', 'pricing');
+$router->add('support', 'PropertyController', 'support');
 $router->add('property/searchMap', 'PropertyController', 'searchMap');
 $router->add('auth/login', 'AuthController', 'login');
 $router->add('auth/signup', 'AuthController', 'signup');
@@ -28,12 +32,24 @@ $router->add('tenant/dashboard', 'TenantController', 'dashboard');
 $router->add('tenant/verify', 'TenantController', 'verify');
 $router->add('tenant/verify-submit', 'TenantController', 'submitVerification');
 $router->add('tenant/request-rental', 'TenantController', 'requestRental');
+$router->add('tenant/property', 'TenantController', 'propertyDetails');
+$router->add('tenant/pay', 'TenantController', 'processPayment');
 $router->add('landlord/dashboard', 'LandlordController', 'dashboard');
 $router->add('landlord/verify', 'LandlordController', 'verify');
 $router->add('landlord/verify-submit', 'LandlordController', 'submitVerification');
 $router->add('landlord/add-property', 'LandlordController', 'addProperty');
 $router->add('landlord/save-property', 'LandlordController', 'saveProperty');
+$router->add('landlord/edit-property', 'LandlordController', 'editProperty');
+$router->add('landlord/update-property', 'LandlordController', 'updateProperty');
 $router->add('landlord/dashboard', 'LandlordController', 'dashboard');
+$router->add('profile/edit', 'ProfileController', 'edit');
+$router->add('profile/update', 'ProfileController', 'update');
+
+$router->add('admin/cms', 'CmsController', 'index');
+$router->add('staff/cms', 'CmsController', 'index');
+$router->add('cms/update-page', 'CmsController', 'updatePage');
+$router->add('cms/update-settings', 'CmsController', 'updateSettings');
+
 $router->add('staff/dashboard', 'StaffController', 'dashboard');
 $router->add('staff/pending', 'StaffController', 'pending');
 $router->add('staff/view-property', 'StaffController', 'viewProperty');

@@ -1,9 +1,18 @@
+<?php
+require_once __DIR__ . '/../../app/Models/SiteSetting.php';
+$logoUrl = SiteSetting::get('logo_url');
+$faviconUrl = SiteSetting::get('favicon_url');
+$siteName = SiteSetting::get('site_name', 'ZZY Rental');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZZY Rental</title>
+    <title><?= $siteName ?></title>
+    <?php if($faviconUrl): ?>
+    <link rel="icon" type="image/x-icon" href="<?= APP_URL . '/' . $faviconUrl ?>">
+    <?php endif; ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
@@ -11,7 +20,13 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
     <nav class="bg-white shadow-sm p-4 flex justify-between items-center">
-        <a href="<?= APP_URL ?>/" class="text-2xl font-bold text-blue-600">ZZY Rental</a>
+        <a href="<?= APP_URL ?>/" class="flex items-center gap-3">
+            <?php if($logoUrl): ?>
+                <img src="<?= APP_URL . '/' . $logoUrl ?>" class="h-8">
+            <?php else: ?>
+                <span class="text-2xl font-bold text-blue-600">ZZY Rental</span>
+            <?php endif; ?>
+        </a>
         <div class="flex items-center gap-4">
             <?php if(isset($_SESSION['user_id'])): ?>
                 <span class="text-sm text-gray-500 font-medium"><?= $_SESSION['role'] ?></span>

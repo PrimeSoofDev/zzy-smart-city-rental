@@ -28,6 +28,7 @@ class AuthController extends Controller {
 
             if ($user && password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['full_name'] ?: $user['username'];
                 $role = $userModel->getRole($user['id']);
                 $_SESSION['role'] = $role;
 

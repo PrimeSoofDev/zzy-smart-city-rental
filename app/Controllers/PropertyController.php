@@ -16,10 +16,37 @@ class PropertyController extends Controller {
 
         $propModel = new Property();
         $properties = $propModel->getAllApproved();
+        $content = PageContent::getPage('home');
 
-        // Use a public landing page view instead of the tenant dashboard
-        // For now, we will keep the view but it's technically the 'public' view
-        $this->view('tenant/dashboard', ['properties' => $properties]);
+        $this->view('home/index', [
+            'properties' => $properties,
+            'content' => $content
+        ]);
+    }
+
+    public function findHomes() {
+        $propModel = new Property();
+        $properties = $propModel->getAllApproved();
+        $content = PageContent::getPage('find_homes');
+        $this->view('home/find_homes', [
+            'properties' => $properties,
+            'content' => $content
+        ]);
+    }
+
+    public function howItWorks() {
+        $content = PageContent::getPage('how_it_works');
+        $this->view('home/how_it_works', ['content' => $content]);
+    }
+
+    public function pricing() {
+        $content = PageContent::getPage('pricing');
+        $this->view('home/pricing', ['content' => $content]);
+    }
+
+    public function support() {
+        $content = PageContent::getPage('support');
+        $this->view('home/support', ['content' => $content]);
     }
 
     public function searchMap() {

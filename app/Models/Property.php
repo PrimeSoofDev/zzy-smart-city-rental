@@ -36,4 +36,14 @@ class Property extends Model {
         $stmt = $this->db->prepare("UPDATE properties SET latitude = ?, longitude = ? WHERE id = ?");
         return $stmt->execute([$lat, $lng, $id]);
     }
+
+    public function getSuggested($type, $excludeId, $limit = 3) {
+        $stmt = $this->db->prepare("SELECT * FROM properties WHERE property_type = ? AND id != ? AND status = 'approved' ORDER BY RAND() LIMIT ?");
+        // PDO doesn't like LIMIT as a bound param unless using bindValue with PARAM_INT
+        $stmt->bindValue(1, $type);
+        $stmt->bindValue(2, $excludeId, PDO::PARAM_INT);
+        $stmt->bindValue(3, $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }

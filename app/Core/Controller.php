@@ -2,13 +2,17 @@
 class Controller {
     public function view($view, $data = []) {
         extract($data);
-        // Only use default layout if NOT in admin section
-        if (strpos($_SERVER['REQUEST_URI'], '/admin/') === false) {
+        // Only use default layout if NOT in admin section and NOT a standalone guest page
+        $isAdmin = strpos($_SERVER['REQUEST_URI'], '/admin/') !== false;
+        $guestViews = ['home/index', 'home/find_homes', 'home/how_it_works', 'home/pricing', 'home/support'];
+        $isStandaloneGuest = in_array($view, $guestViews);
+
+        if (!$isAdmin && !$isStandaloneGuest) {
             require_once "../views/layouts/header.php";
             require_once "../views/$view.php";
             require_once "../views/layouts/footer.php";
         } else {
-            // For admin views, we just load the file since the Controller/Router handles the layout
+            // For admin views and standalone guest pages, load only the view file
             require_once "../views/$view.php";
         }
     }

@@ -53,7 +53,7 @@
                         </div>
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-600"><?= htmlspecialchars($p['landlord_name']) ?></td>
-                    <td class="px-6 py-4 font-bold text-gray-800">$<?= number_format($p['price'], 2) ?>/mo</td>
+                    <td class="px-6 py-4 font-bold text-gray-800">₦<?= number_format($p['price'], 2) ?>/mo</td>
                     <td class="px-6 py-4">
                         <span class="px-2 py-1 text-[10px] font-bold rounded-full <?= $p['status'] === 'approved' ? 'bg-green-100 text-green-700' : ($p['status'] === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700') ?> uppercase">
                             <?= ucfirst($p['status']) ?>

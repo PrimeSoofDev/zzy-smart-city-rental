@@ -26,8 +26,8 @@
                         <h3 class="text-lg font-bold mb-1"><?= $p['title'] ?></h3>
                         <p class="text-gray-600 text-sm mb-2 line-clamp-2"><?= $p['description'] ?></p>
                         <div class="flex justify-between items-center mb-3">
-                            <span class="text-xl font-extrabold text-blue-600">$<?= number_format($p['price'], 2) ?></span>
-                            <a href="<?= APP_URL ?>/tenant/request-rental?id=<?= $p['id'] ?>" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-700 transition">Request</a>
+                            <span class="text-xl font-extrabold text-blue-600">₦<?= number_format($p['price'], 2) ?></span>
+                            <a href="<?= APP_URL ?>/tenant/property?id=<?= $p['id'] ?>" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-700 transition">View Details</a>
                         </div>
                         <div class="flex gap-3 text-[10px] text-gray-500 font-medium">
                             <span>🛏️ <?= $p['rooms'] ?> Rooms</span>
@@ -140,7 +140,7 @@
                 <h3 class="text-lg font-bold mb-1">${p.title}</h3>
                 <p class="text-gray-600 text-sm mb-2 line-clamp-2">${p.description}</p>
                 <div class="flex justify-between items-center mb-3">
-                    <span class="text-xl font-extrabold text-blue-600">$${parseFloat(p.price).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                    <span class="text-xl font-extrabold text-blue-600">₦${parseFloat(p.price).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                     <a href="<?= APP_URL ?>/tenant/property?id=${p.id}" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-700 transition">View Details</a>
                 </div>
                 <div class="flex gap-3 text-[10px] text-gray-500 font-medium">
@@ -157,8 +157,31 @@
                 const marker = new google.maps.Marker({
                     position: { lat: parseFloat(p.latitude), lng: parseFloat(p.longitude) },
                     map: map,
-                    title: p.title
+                    title: p.title,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 10,
+                        fillColor: "#2563eb",
+                        fillOpacity: 1,
+                        strokeWeight: 2,
+                        strokeColor: "#ffffff",
+                    }
                 });
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div class="p-2">
+                            <h4 class="font-bold text-gray-900">${p.title}</h4>
+                            <p class="text-blue-600 font-bold mb-2">₦${parseFloat(p.price).toLocaleString()}</p>
+                            <a href="<?= APP_URL ?>/tenant/property?id=${p.id}" class="text-xs bg-blue-600 text-white px-2 py-1 rounded block text-center">View Details</a>
+                        </div>
+                    `
+                });
+
+                marker.addListener('click', () => {
+                    infoWindow.open(map, marker);
+                });
+
                 markers.push(marker);
             }
         });
