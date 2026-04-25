@@ -5,6 +5,6 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 
 define('APP_URL', 'http://localhost:8080/zzy_rental');
-define('SESSION_NAME', 'ZZY_SESS_ID');
+define('GOOGLE_MAPS_API_KEY', 'YOUR_GOOGLE_MAPS_API_KEY_HERE');
 
 session_start();

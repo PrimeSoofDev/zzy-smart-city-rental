@@ -30,7 +30,9 @@ class LandlordController extends Controller {
         $properties->execute([$userId]);
         $myProperties = $properties->fetchAll();
 
+        require_once "../views/layouts/landlord_layout_start.php";
         $this->view('landlord/dashboard', ['properties' => $myProperties]);
+        require_once "../views/layouts/landlord_layout_end.php";
     }
 
     public function verify() {
@@ -46,7 +48,9 @@ class LandlordController extends Controller {
             $this->redirect('landlord/dashboard');
         }
 
+        require_once "../views/layouts/landlord_layout_start.php";
         $this->view('landlord/verification');
+        require_once "../views/layouts/landlord_layout_end.php";
     }
 
     public function submitVerification() {

@@ -21,7 +21,10 @@ class TenantController extends Controller {
         RbacMiddleware::check(['Tenant']);
         $propModel = new Property();
         $properties = $propModel->getAllApproved();
+
+        require_once "../views/layouts/tenant_layout_start.php";
         $this->view('tenant/dashboard', ['properties' => $properties]);
+        require_once "../views/layouts/tenant_layout_end.php";
     }
 
     public function verify() {
@@ -37,7 +40,9 @@ class TenantController extends Controller {
             $this->redirect('tenant/dashboard');
         }
 
+        require_once "../views/layouts/tenant_layout_start.php";
         $this->view('tenant/verification');
+        require_once "../views/layouts/tenant_layout_end.php";
     }
 
     public function submitVerification() {

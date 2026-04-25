@@ -22,7 +22,27 @@ class PropertyController extends Controller {
         $this->view('tenant/dashboard', ['properties' => $properties]);
     }
 
+    public function searchMap() {
+        $north = $_GET['north'] ?? null;
+        $south = $_GET['south'] ?? null;
+        $east = $_GET['east'] ?? null;
+        $west = $_GET['west'] ?? null;
+
+        if (!$north || !$south || !$east || !$west) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Invalid map boundaries provided']);
+            return;
+        }
+
+        $propModel = new Property();
+        $properties = $propModel->getPropertiesInBounds($north, $south, $east, $west);
+
+        header('Content-Type: application/json');
+        echo json_encode($properties);
+    }
+
     public function add() {
+
         RbacMiddleware::check(['Landlord']);
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $propModel = new Property();

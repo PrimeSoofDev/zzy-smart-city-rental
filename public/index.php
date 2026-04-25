@@ -20,6 +20,7 @@ spl_autoload_register(function ($class) {
 $router = new Router();
 
 $router->add('/', 'PropertyController', 'index');
+$router->add('property/searchMap', 'PropertyController', 'searchMap');
 $router->add('auth/login', 'AuthController', 'login');
 $router->add('auth/signup', 'AuthController', 'signup');
 $router->add('auth/logout', 'AuthController', 'logout');
