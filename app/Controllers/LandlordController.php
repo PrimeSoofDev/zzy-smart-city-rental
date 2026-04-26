@@ -326,4 +326,27 @@ class LandlordController extends Controller {
             $this->redirect('landlord/bank-details');
         }
     }
+
+    public function disputes() {
+        $this->checkVerification();
+        RbacMiddleware::check(['Landlord']);
+
+        $db = Database::getInstance()->getConnection();
+        $userId = $_SESSION['user_id'];
+
+        $stmt = $db->prepare("
+            SELECT t.*, p.title as property_title, u.username as tenant_name, rr.status as request_status
+            FROM transactions t
+            JOIN rental_requests rr ON t.request_id = rr.id
+            JOIN properties p ON rr.property_id = p.id
+            JOIN users u ON t.user_id = u.id
+            WHERE p.landlord_id = ? AND t.status IN ('escrow_hold', 'released', 'refunded', 'completed')
+        ");
+        $stmt->execute([$userId]);
+        $payoutItems = $stmt->fetchAll();
+
+        require_once "../views/layouts/landlord_layout_start.php";
+        $this->view('landlord/disputes', ['payoutItems' => $payoutItems], false);
+        require_once "../views/layouts/landlord_layout_end.php";
+    }
 }

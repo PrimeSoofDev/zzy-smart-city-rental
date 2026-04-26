@@ -175,7 +175,7 @@ class TenantController extends Controller {
             $property = $stmt->fetch();
 
             if (!$property) throw new Exception("Property not found.");
-            if (empty($property['subaccount_code'])) throw new Exception("Landlord has not set up bank details yet.");
+            // Allow payment even if landlord has no subaccount. Money goes to main platform escrow.
 
             // Calculate Total
             $basePrice = floatval($property['price']);
@@ -322,5 +322,27 @@ class TenantController extends Controller {
             $_SESSION['error'] = "Error: " . $e->getMessage();
         }
         $this->redirect('tenant/dashboard');
+    }
+
+    public function disputes() {
+        $this->checkVerification();
+        RbacMiddleware::check(['Tenant']);
+
+        $db = Database::getInstance()->getConnection();
+        $userId = $_SESSION['user_id'];
+
+        $stmt = $db->prepare("
+            SELECT t.*, p.title as property_title, p.address as property_address, rr.status as request_status
+            FROM transactions t
+            JOIN rental_requests rr ON t.request_id = rr.id
+            JOIN properties p ON rr.property_id = p.id
+            WHERE t.user_id = ? AND t.status IN ('escrow_hold', 'released', 'refunded', 'completed')
+        ");
+        $stmt->execute([$userId]);
+        $escrowItems = $stmt->fetchAll();
+
+        require_once "../views/layouts/tenant_layout_start.php";
+        $this->view('tenant/disputes', ['escrowItems' => $escrowItems], false);
+        require_once "../views/layouts/tenant_layout_end.php";
     }
 }

@@ -75,6 +75,10 @@ $logoUrl = SiteSetting::get('logo_url');
                 <i class="fas fa-id-card w-5"></i> <span class="sidebar-text">My Verification</span>
             </a>
             
+            <a href="<?= APP_URL ?>/tenant/disputes" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'tenant/disputes') !== false) ? 'bg-blue-600 text-white shadow-md' : '' ?>">
+                <i class="fas fa-gavel w-5 text-amber-400"></i> <span class="sidebar-text">Dispute Center</span>
+            </a>
+            
             <?php
             require_once __DIR__ . '/../../app/Models/Notification.php';
             $unreadNotifs = Notification::getUnreadCount($_SESSION['user_id'] ?? 0);

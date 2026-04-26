@@ -41,6 +41,10 @@ class DisputeController extends Controller {
         $stmt = $db->prepare("UPDATE transactions SET status = 'escrow_hold' WHERE request_id = ?");
         $stmt->execute([$requestId]);
 
+        // 3.5 Update rental request status to disputed
+        $stmt = $db->prepare("UPDATE rental_requests SET status = 'disputed' WHERE id = ?");
+        $stmt->execute([$requestId]);
+
         // 4. Create the dispute record
         $stmt = $db->prepare("INSERT INTO disputes (request_id, raised_by, reason, status) VALUES (?, ?, ?, 'open')");
         $stmt->execute([$requestId, $userId, $reason]);

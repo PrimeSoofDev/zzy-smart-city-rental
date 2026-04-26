@@ -617,4 +617,105 @@ class AdminController extends Controller {
             $this->redirect('admin/dashboard');
         }
     }
+
+    public function disputes() {
+        RbacMiddleware::check(['Admin']);
+        $db = Database::getInstance()->getConnection();
+        
+        $query = "
+            SELECT d.*, 
+                   p.title as property_title,
+                   tu.username as tenant_name,
+                   lu.username as landlord_name
+            FROM disputes d
+            JOIN rental_requests rr ON d.request_id = rr.id
+            JOIN properties p ON rr.property_id = p.id
+            JOIN users tu ON rr.tenant_id = tu.id
+            JOIN users lu ON p.landlord_id = lu.id
+            ORDER BY d.created_at DESC
+        ";
+        $disputes = $db->query($query)->fetchAll();
+
+        $this->renderAdminView('disputes', ['disputes' => $disputes]);
+    }
+
+    public function mediateDispute() {
+        RbacMiddleware::check(['Admin']);
+        $id = $_GET['id'] ?? null;
+        if (!$id) $this->redirect('admin/disputes');
+
+        $db = Database::getInstance()->getConnection();
+
+        $stmt = $db->prepare("
+            SELECT d.*, r.amount, p.title as property_title, 
+                   tu.username as tenant_name, lu.username as landlord_name
+            FROM disputes d
+            JOIN rental_requests r ON d.request_id = r.id
+            JOIN properties p ON r.property_id = p.id
+            JOIN users tu ON r.tenant_id = tu.id
+            JOIN users lu ON p.landlord_id = lu.id
+            WHERE d.id = ?
+        ");
+        $stmt->execute([$id]);
+        $dispute = $stmt->fetch();
+
+        if (!$dispute) $this->redirect('admin/disputes');
+
+        $evStmt = $db->prepare("
+            SELECT e.*, u.username as user_name 
+            FROM dispute_evidence e 
+            JOIN users u ON e.uploaded_by = u.id 
+            WHERE e.dispute_id = ? 
+            ORDER BY e.created_at ASC
+        ");
+        $evStmt->execute([$id]);
+        $evidence = $evStmt->fetchAll();
+
+        $this->renderAdminView('mediate_dispute', [
+            'dispute' => $dispute,
+            'evidence' => $evidence
+        ]);
+    }
+
+    public function resolveDispute() {
+        RbacMiddleware::check(['Admin']);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') $this->redirect('admin/disputes');
+
+        $disputeId = $_POST['dispute_id'] ?? null;
+        $resolutionType = $_POST['resolution_type'] ?? null;
+        $notes = $this->sanitize($_POST['notes'] ?? '');
+
+        if (!$disputeId || !$resolutionType) {
+            $_SESSION['error'] = "Missing resolution details.";
+            $this->redirect('admin/disputes');
+        }
+
+        $db = Database::getInstance()->getConnection();
+        $db->beginTransaction();
+
+        try {
+            $db->prepare("UPDATE disputes SET status = 'resolved', resolution_type = ?, resolution_notes = ?, resolved_at = NOW() WHERE id = ?")
+               ->execute([$resolutionType, $notes, $disputeId]);
+
+            $stmt = $db->prepare("SELECT request_id FROM disputes WHERE id = ?");
+            $stmt->execute([$disputeId]);
+            $requestId = $stmt->fetchColumn();
+
+            if ($resolutionType === 'full_release') {
+                $db->prepare("UPDATE transactions SET status = 'released' WHERE request_id = ?")->execute([$requestId]);
+            } elseif ($resolutionType === 'full_refund') {
+                $db->prepare("UPDATE transactions SET status = 'refunded' WHERE request_id = ?")->execute([$requestId]);
+                $db->prepare("UPDATE rental_requests SET status = 'cancelled' WHERE id = ?")->execute([$requestId]);
+            }
+
+            // Note: partial split logic would be handled by payment service in production.
+            $db->commit();
+            $_SESSION['success'] = "Dispute resolved successfully.";
+        } catch (Exception $e) {
+            $db->rollBack();
+            $_SESSION['error'] = "Error: " . $e->getMessage();
+        }
+
+        $this->redirect('admin/disputes');
+    }
 }

@@ -66,6 +66,30 @@
             </div>
         </div>
 
+        <!-- Payment API Configuration -->
+        <div class="mt-8">
+            <div class="p-6 border-b border-gray-100 bg-gray-50 rounded-t-2xl">
+                <h3 class="font-bold text-gray-800"><i class="fas fa-credit-card text-blue-500 mr-2"></i>Payment API Configuration</h3>
+                <p class="text-sm text-gray-500">Manage your Paystack integration keys. If left blank, the system will use the default keys in the configuration file.</p>
+            </div>
+            <div class="p-6 bg-white border border-t-0 border-gray-100 rounded-b-2xl grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Paystack Public Key -->
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-gray-600">Paystack Public Key</label>
+                    <input type="text" name="settings[paystack_public_key]" value="<?= htmlspecialchars($settings['paystack_public_key'] ?? '') ?>" placeholder="pk_test_..."
+                           class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono text-sm">
+                </div>
+
+                <!-- Paystack Secret Key -->
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-gray-600">Paystack Secret Key</label>
+                    <input type="password" name="settings[paystack_secret_key]" value="<?= htmlspecialchars($settings['paystack_secret_key'] ?? '') ?>" placeholder="sk_test_..."
+                           class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono text-sm">
+                    <p class="text-[10px] text-gray-400">Keep this key secure. It is required for verifying transactions and payouts.</p>
+                </div>
+            </div>
+        </div>
+
         <div class="flex justify-end pt-4">
             <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
                 Save Settings
