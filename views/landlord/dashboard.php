@@ -20,47 +20,7 @@
     </div>
 <?php endif; ?>
 
-<?php if(!empty($payoutItems)): ?>
-    <div class="mb-12">
-        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <i class="fas fa-wallet text-blue-500"></i> Payouts & Escrow
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <?php foreach($payoutItems as $item): ?>
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="bg-blue-50 text-blue-600 p-3 rounded-2xl">
-                            <i class="fas fa-hand-holding-usd text-xl"></i>
-                        </div>
-                        <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full 
-                            <?= $item['status'] == 'escrow_hold' ? 'bg-yellow-50 text-yellow-600 border border-yellow-100' : 'bg-green-50 text-green-600 border border-green-100' ?>">
-                            <?= $item['status'] == 'escrow_hold' ? 'Awaiting move-in' : 'Released' ?>
-                        </span>
-                    </div>
-                    <h3 class="font-bold text-gray-900 mb-1"><?= htmlspecialchars($item['property_title']) ?></h3>
-                    <p class="text-xs text-gray-500 mb-4 line-clamp-1">Tenant: <?= htmlspecialchars($item['tenant_name']) ?></p>
-                    
-                    <div class="flex items-center justify-between pt-4 border-t border-gray-50">
-                        <div>
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Total Rent</p>
-                            <p class="font-black text-gray-900">₦<?= number_format($item['amount'], 2) ?></p>
-                        </div>
-                        <?php if($item['status'] == 'escrow_hold'): ?>
-                            <div class="text-right flex flex-col items-end gap-2">
-                                <div>
-                                    <span class="block text-[10px] font-black text-blue-600 uppercase">Held In Escrow</span>
-                                    <span class="text-[9px] text-gray-400">Secure & Verified</span>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
 
-
-    </div>
-<?php endif; ?>
 
 <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold">My Properties</h1>
