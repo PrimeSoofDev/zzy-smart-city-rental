@@ -96,4 +96,29 @@
             </tbody>
         </table>
     </div>
+    
+    <!-- Financial Summary Bar -->
+    <?php
+    $totalTenantPayments = 0;
+    $totalLandlordEarnings = 0;
+    foreach($transactions as $tx) {
+        if ($tx['transaction_type'] === 'escrow_deposit' && $tx['status'] !== 'failed') {
+            $totalTenantPayments += $tx['amount'];
+        }
+        if ($tx['transaction_type'] === 'landlord_payout' && $tx['status'] === 'completed') {
+            $totalLandlordEarnings += $tx['amount'];
+        }
+    }
+    ?>
+    <div class="p-6 bg-gray-50 border-t border-gray-100 flex flex-col md:flex-row justify-end items-center gap-8">
+        <div class="flex items-center gap-3">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Total Tenant Payments</span>
+            <span class="text-xl font-black text-blue-600">₦<?= number_format($totalTenantPayments, 2) ?></span>
+        </div>
+        <div class="hidden md:block w-px h-8 bg-gray-200"></div>
+        <div class="flex items-center gap-3">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Total Landlord Earnings</span>
+            <span class="text-xl font-black text-emerald-600">₦<?= number_format($totalLandlordEarnings, 2) ?></span>
+        </div>
+    </div>
 </div>
