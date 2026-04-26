@@ -110,6 +110,11 @@
                         </div>
 
                         <div class="space-y-6">
+                            <div class="relative">
+                                <input type="text" id="address-search" placeholder="Search for your property address..." 
+                                       class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-slate-900 font-bold outline-none focus:border-blue-600 focus:bg-white transition-all shadow-sm">
+                                <button type="button" id="search-loc-btn" class="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase hover:bg-blue-700 transition-all">Search</button>
+                            </div>
                             <div id="map" class="w-full h-96 rounded-3xl border-4 border-slate-100 shadow-inner bg-slate-50 overflow-hidden z-0"></div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-slate-50 p-6 rounded-3xl border border-slate-100">
@@ -179,6 +184,32 @@
     }).addTo(map);
 
     let marker;
+    
+    // Search Location Logic
+    document.getElementById('search-loc-btn').addEventListener('click', async () => {
+        const query = document.getElementById('address-search').value;
+        if (!query) return;
+
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            if (data.length > 0) {
+                const { lat, lon, display_name } = data[0];
+                const latlng = [parseFloat(lat), parseFloat(lon)];
+                
+                map.setView(latlng, 16);
+                if (marker) marker.setLatLng(latlng);
+                else marker = L.marker(latlng).addTo(map);
+
+                document.getElementById('lat').value = parseFloat(lat).toFixed(8);
+                document.getElementById('lng').value = parseFloat(lon).toFixed(8);
+                document.getElementById('address').value = display_name;
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+        }
+    });
+
     map.on('click', function(e) {
         const { lat, lng } = e.latlng;
         if (marker) marker.setLatLng(e.latlng);

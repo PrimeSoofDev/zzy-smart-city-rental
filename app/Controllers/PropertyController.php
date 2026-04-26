@@ -54,6 +54,7 @@ class PropertyController extends Controller {
         $south = $_GET['south'] ?? null;
         $east = $_GET['east'] ?? null;
         $west = $_GET['west'] ?? null;
+        $query = $_GET['q'] ?? null;
 
         if (!$north || !$south || !$east || !$west) {
             header('Content-Type: application/json');
@@ -62,7 +63,7 @@ class PropertyController extends Controller {
         }
 
         $propModel = new Property();
-        $properties = $propModel->getPropertiesInBounds($north, $south, $east, $west);
+        $properties = $propModel->getPropertiesInBounds($north, $south, $east, $west, $query);
 
         header('Content-Type: application/json');
         echo json_encode($properties);

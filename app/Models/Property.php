@@ -26,9 +26,24 @@ class Property extends Model {
         return $stmt->fetch();
     }
 
-    public function getPropertiesInBounds($north, $south, $east, $west) {
-        $stmt = $this->db->prepare("SELECT * FROM properties WHERE status = 'approved' AND latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?");
-        $stmt->execute([$south, $north, $west, $east]);
+    public function getPropertiesInBounds($north, $south, $east, $west, $query = null) {
+        $sql = "SELECT * FROM properties WHERE status = 'approved' AND (
+                    (latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?)
+                ";
+        $params = [$south, $north, $west, $east];
+
+        if ($query) {
+            $sql .= " OR (title LIKE ? OR address LIKE ? OR description LIKE ?)";
+            $searchTerm = "%$query%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+        }
+
+        $sql .= ")";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 

@@ -115,9 +115,10 @@
         const south = bounds.getSouth();
         const east = bounds.getEast();
         const west = bounds.getWest();
+        const query = document.getElementById('map-search').value;
 
         try {
-            const response = await fetch(`<?= APP_URL ?>/property/searchMap?north=${north}&south=${south}&east=${east}&west=${west}`);
+            const response = await fetch(`<?= APP_URL ?>/property/searchMap?north=${north}&south=${south}&east=${east}&west=${west}&q=${encodeURIComponent(query)}`);
             const properties = await response.json();
 
             if (properties.error) throw new Error(properties.error);
