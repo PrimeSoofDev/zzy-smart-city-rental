@@ -105,10 +105,19 @@
                 <div id="tab-branding" class="tab-content hidden space-y-8">
                     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="p-8 border-b border-gray-50">
-                            <h3 class="text-xl font-bold text-gray-900">Platform Branding</h3>
-                            <p class="text-sm text-gray-500">Upload your logo and favicon for the website.</p>
+                            <h3 class="text-xl font-bold text-gray-900">Site Branding</h3>
+                            <p class="text-sm text-gray-500">Manage your platform's name, logo, and favicon.</p>
                         </div>
-                        <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div class="p-8 space-y-8">
+                            <!-- Site Name -->
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-gray-700 block">Site Name</label>
+                                <input type="text" name="settings[site_name]" value="<?= htmlspecialchars($settings['site_name'] ?? $settings['platform_name'] ?? 'ZZY Rental') ?>"
+                                       class="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            </div>
+
+                            <!-- Logo + Favicon -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <!-- Logo Upload -->
                             <div class="space-y-4">
                                 <label class="text-sm font-bold text-gray-700 block">Main Logo</label>
@@ -148,7 +157,8 @@
                                 </div>
                                 <p class="text-[10px] text-gray-400">Recommended size: 32x32px or 64x64px. .ico or .png</p>
                             </div>
-                        </div>
+                        </div><!-- end logo+favicon grid -->
+                        </div><!-- end space-y-8 -->
                     </div>
                 </div>
                 <div id="tab-payments" class="tab-content hidden space-y-8">

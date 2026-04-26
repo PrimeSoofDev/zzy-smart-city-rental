@@ -8,7 +8,7 @@ $stmt = $db->prepare("SELECT avatar_url FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id'] ?? 0]);
 $userAvatar = $stmt->fetchColumn();
 
-$siteName = SiteSetting::get('site_name', 'ZZY Rental');
+$siteName = SiteSetting::get('site_name') ?: SiteSetting::get('platform_name', 'ZZY Rental');
 $faviconUrl = SiteSetting::get('favicon_url');
 $logoUrl = SiteSetting::get('logo_url');
 ?>
