@@ -10,9 +10,18 @@
                     Revolutionizing the rental market with artificial intelligence. Secure, transparent, and built for the modern tenant.
                 </p>
                 <div class="flex gap-4">
-                    <a href="#" class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"><i class="fab fa-linkedin"></i></a>
+                    <?php if($fb = SiteSetting::get('social_facebook')): ?>
+                    <a href="<?= $fb ?>" target="_blank" class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"><i class="fab fa-facebook-f"></i></a>
+                    <?php endif; ?>
+                    <?php if($tw = SiteSetting::get('social_twitter')): ?>
+                    <a href="<?= $tw ?>" target="_blank" class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"><i class="fab fa-twitter"></i></a>
+                    <?php endif; ?>
+                    <?php if($ig = SiteSetting::get('social_instagram')): ?>
+                    <a href="<?= $ig ?>" target="_blank" class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"><i class="fab fa-instagram"></i></a>
+                    <?php endif; ?>
+                    <?php if($li = SiteSetting::get('social_linkedin')): ?>
+                    <a href="<?= $li ?>" target="_blank" class="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"><i class="fab fa-linkedin"></i></a>
+                    <?php endif; ?>
                 </div>
             </div>
             <div>

@@ -1,6 +1,6 @@
 <?php
 
-class Review {
+class Review extends Model {
     public static function create($data) {
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare("INSERT INTO reviews (reviewer_id, reviewee_id, request_id, rating, comment) VALUES (?, ?, ?, ?, ?)");
@@ -15,7 +15,13 @@ class Review {
 
     public static function getByReviewee($revieweeId) {
         $db = Database::getInstance()->getConnection();
-        $stmt = $db->prepare("SELECT r.*, u.name as reviewer_name FROM reviews r JOIN users u ON r.reviewer_id = u.id WHERE r.reviewee_id = ? AND r.status = 'active' ORDER BY r.created_at DESC");
+        $stmt = $db->prepare("
+            SELECT r.*, COALESCE(u.full_name, u.username) as reviewer_name 
+            FROM reviews r 
+            JOIN users u ON r.reviewer_id = u.id 
+            WHERE r.reviewee_id = ? AND r.status = 'active' 
+            ORDER BY r.created_at DESC
+        ");
         $stmt->execute([$revieweeId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -24,8 +30,8 @@ class Review {
         $db = Database::getInstance()->getConnection();
         $stmt = $db->query("
             SELECT r.*, 
-                   u1.name as reviewer_name, u1.role as reviewer_role,
-                   u2.name as reviewee_name, u2.role as reviewee_role,
+                   COALESCE(u1.full_name, u1.username) as reviewer_name,
+                   COALESCE(u2.full_name, u2.username) as reviewee_name,
                    p.title as property_title
             FROM reviews r
             JOIN users u1 ON r.reviewer_id = u1.id

@@ -199,7 +199,11 @@ $logoUrl = SiteSetting::get('logo_url');
                             <i class="fas fa-user-edit text-gray-400"></i>
                             Edit Profile
                         </a>
-                        <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <a href="<?= APP_URL ?>/profile/change-password" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-shield-alt text-gray-400"></i>
+                            Security Settings
+                        </a>
+                        <a href="<?= APP_URL ?>/admin/settings" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                             <i class="fas fa-cog text-gray-400"></i>
                             Settings
                         </a>

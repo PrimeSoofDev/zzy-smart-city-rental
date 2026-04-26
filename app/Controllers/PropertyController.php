@@ -25,12 +25,22 @@ class PropertyController extends Controller {
     }
 
     public function findHomes() {
+        $location = $_GET['location'] ?? 'Port Harcourt';
+        $type = $_GET['type'] ?? null;
+        $price = $_GET['price'] ?? null;
+
         $propModel = new Property();
-        $properties = $propModel->getAllApproved();
+        $properties = $propModel->search($location, $type, $price);
+        
         $content = PageContent::getPage('find_homes');
         $this->view('home/find_homes', [
             'properties' => $properties,
-            'content' => $content
+            'content' => $content,
+            'filters' => [
+                'location' => $location,
+                'type' => $type,
+                'price' => $price
+            ]
         ]);
     }
 

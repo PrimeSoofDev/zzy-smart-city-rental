@@ -49,7 +49,7 @@
 
             <div class="relative lg:block hidden">
                 <div class="relative rounded-[3rem] overflow-hidden shadow-2xl border border-slate-100 group">
-                    <img src="<?= APP_URL ?>/landing_hero_modern_house_1777129698447.png" alt="Modern House" class="w-full h-[600px] object-cover transition-transform duration-700 group-hover:scale-105">
+                    <img src="<?= APP_URL ?>/hero_modern_house.png" alt="Modern House" class="w-full h-[600px] object-cover transition-transform duration-700 group-hover:scale-105">
                     <div class="absolute inset-0 bg-gradient-to-t from-white/20 via-transparent to-transparent"></div>
                 </div>
             </div>
@@ -70,14 +70,13 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <?php foreach ($properties as $property): ?>
                     <?php 
-                        $images = json_decode($property['images'], true) ?: [];
-                        $firstImage = !empty($images) ? APP_URL . '/' . $images[0] : 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=800';
+                        $firstImage = !empty($property['primary_image']) ? APP_URL . '/' . $property['primary_image'] : 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=800';
                     ?>
                     <div class="group relative bg-slate-50 rounded-[2.5rem] border border-slate-100 overflow-hidden transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-900/5">
                         <div class="h-72 overflow-hidden relative">
                             <img src="<?= $firstImage ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                             <div class="absolute top-6 left-6 px-4 py-2 bg-white/90 backdrop-blur-md rounded-2xl text-[10px] font-black text-slate-900 uppercase tracking-widest border border-white/20">
-                                <?= $property['type'] ?>
+                                <?= htmlspecialchars($property['property_type'] ?? 'House') ?>
                             </div>
                             <div class="absolute bottom-6 right-6 px-4 py-2 bg-blue-600 text-white rounded-2xl text-sm font-black shadow-lg">
                                 ₦<?= number_format($property['price']) ?>/yr

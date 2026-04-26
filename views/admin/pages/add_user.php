@@ -132,7 +132,61 @@
                         <div>
                             <p class="text-sm font-bold text-blue-800">Account Ready</p>
                             <p class="text-xs text-blue-600 leading-relaxed">
-                                Provide the email and the temporary password to the user. They can log in immediately and manage their assignments.
+                                User can log in immediately and manage their assignments using the temporary password.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Verification Delivery Section -->
+            <section class="pt-8 border-t border-gray-100">
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-1 h-6 bg-blue-600 rounded-full"></div>
+                    <h4 class="text-lg font-bold text-gray-800">Verification Delivery</h4>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-3">
+                        <label class="text-sm font-semibold text-gray-600 flex items-center gap-2">
+                            <i class="fas fa-paper-plane text-gray-400 text-xs"></i> Send OTP Via
+                        </label>
+                        <div class="flex gap-4">
+                            <label class="flex-1 cursor-pointer group">
+                                <input type="radio" name="otp_channel" value="email" checked class="hidden peer">
+                                <div class="p-4 border-2 border-gray-100 rounded-2xl flex items-center gap-3 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all">
+                                    <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-gray-200 peer-checked:bg-blue-600 peer-checked:text-white transition-all">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-gray-700 peer-checked:text-blue-900">Email</p>
+                                        <p class="text-[10px] text-gray-400">Send code to inbox</p>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer group">
+                                <input type="radio" name="otp_channel" value="phone" class="hidden peer">
+                                <div class="p-4 border-2 border-gray-100 rounded-2xl flex items-center gap-3 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all">
+                                    <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-gray-200 peer-checked:bg-blue-600 peer-checked:text-white transition-all">
+                                        <i class="fas fa-sms"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-gray-700 peer-checked:text-blue-900">SMS</p>
+                                        <p class="text-[10px] text-gray-400">Send code to phone</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-4 self-end">
+                        <div class="p-2 bg-amber-500 text-white rounded-lg h-fit">
+                            <i class="fas fa-shield-alt text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-amber-800">Security Requirement</p>
+                            <p class="text-[10px] text-amber-600 leading-relaxed">
+                                The user will receive a 6-digit code to verify their identity.
                             </p>
                         </div>
                     </div>
@@ -140,12 +194,12 @@
             </section>
 
             <!-- Action Bar -->
-            <div class="flex items-center justify-end gap-4 pt-8">
-                <button type="button" class="px-6 py-3 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-all">
+            <div class="flex items-center justify-end gap-4 pt-8 border-t border-gray-100">
+                <button type="button" onclick="window.history.back()" class="px-6 py-3 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-all">
                     Cancel
                 </button>
                 <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 flex items-center gap-2">
-                    <i class="fas fa-paper-plane text-xs"></i> Create & Invite
+                    <i class="fas fa-paper-plane text-xs"></i> Create & Send OTP
                 </button>
             </div>
         </form>

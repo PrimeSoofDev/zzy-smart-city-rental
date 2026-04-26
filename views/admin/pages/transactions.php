@@ -3,28 +3,42 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <p class="text-gray-500 text-xs font-bold uppercase mb-1">Escrow Balance</p>
-        <p class="text-3xl font-extrabold text-gray-900">$452,000.00</p>
-        <div class="mt-2 text-green-600 text-xs font-bold">↑ 12% from last month</div>
+        <p class="text-3xl font-extrabold text-gray-900">₦<?= number_format($stats['escrowBalance'], 2) ?></p>
+        <div class="mt-2 text-blue-600 text-xs font-bold">Live Holdings</div>
     </div>
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <p class="text-gray-500 text-xs font-bold uppercase mb-1">Monthly Revenue</p>
-        <p class="text-3xl font-extrabold text-gray-900">$12,450.00</p>
-        <div class="mt-2 text-green-600 text-xs font-bold">↑ 8.2% increase</div>
+        <p class="text-3xl font-extrabold text-gray-900">₦<?= number_format($stats['monthlyRevenue'], 2) ?></p>
+        <div class="mt-2 text-green-600 text-xs font-bold">Platform Earnings</div>
     </div>
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <p class="text-gray-500 text-xs font-bold uppercase mb-1">Failed Payments</p>
-        <p class="text-3xl font-extrabold text-red-600">14</p>
+        <p class="text-3xl font-extrabold text-red-600"><?= number_format($stats['failedCount']) ?></p>
         <div class="mt-2 text-red-600 text-xs font-bold">Requires Attention</div>
     </div>
 </div>
 
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+    <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h3 class="font-bold text-gray-800">Transaction Ledger</h3>
-        <div class="flex gap-2">
-             <input type="text" placeholder="Search TxID..." class="px-3 py-1.5 border rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none">
-             <button class="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-200">Filter</button>
-        </div>
+        <form action="" method="GET" class="flex flex-wrap gap-3">
+            <select name="type" onchange="this.form.submit()" class="px-4 py-2 bg-gray-50 border-none rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                <option value="all">All Types</option>
+                <option value="escrow_deposit" <?= $filters['type'] == 'escrow_deposit' ? 'selected' : '' ?>>Escrow Deposits</option>
+                <option value="landlord_payout" <?= $filters['type'] == 'landlord_payout' ? 'selected' : '' ?>>Landlord Payouts</option>
+                <option value="refund" <?= $filters['type'] == 'refund' ? 'selected' : '' ?>>Refunds</option>
+            </select>
+            <select name="status" onchange="this.form.submit()" class="px-4 py-2 bg-gray-50 border-none rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                <option value="all">All Statuses</option>
+                <option value="completed" <?= $filters['status'] == 'completed' ? 'selected' : '' ?>>Completed</option>
+                <option value="escrow_hold" <?= $filters['status'] == 'escrow_hold' ? 'selected' : '' ?>>Escrow Hold</option>
+                <option value="released" <?= $filters['status'] == 'released' ? 'selected' : '' ?>>Released</option>
+                <option value="failed" <?= $filters['status'] == 'failed' ? 'selected' : '' ?>>Failed</option>
+            </select>
+            <?php if($filters['type'] !== 'all' || $filters['status'] !== 'all'): ?>
+                <a href="<?= APP_URL ?>/admin/transactions" class="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors">Clear</a>
+            <?php endif; ?>
+        </form>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
@@ -39,30 +53,46 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
+                <?php foreach($transactions as $tx): ?>
                 <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 font-mono text-xs text-gray-500">TX-99283401</td>
-                    <td class="px-6 py-4 text-sm text-gray-800">Michael Brown</td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-blue-100 text-blue-700 uppercase">Escrow Deposit</span>
+                    <td class="px-6 py-4 font-mono text-xs text-gray-500">
+                        <?= $tx['paystack_reference'] ?: 'TX-' . str_pad($tx['id'], 8, '0', STR_PAD_LEFT) ?>
                     </td>
-                    <td class="px-6 py-4 font-bold text-gray-800">$1,200.00</td>
+                    <td class="px-6 py-4 text-sm text-gray-800"><?= htmlspecialchars($tx['username']) ?></td>
                     <td class="px-6 py-4">
-                        <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-green-100 text-green-700 uppercase">Completed</span>
+                        <?php 
+                        $typeClass = match($tx['transaction_type']) {
+                            'escrow_deposit' => 'bg-blue-100 text-blue-700',
+                            'landlord_payout' => 'bg-emerald-100 text-emerald-700',
+                            default => 'bg-gray-100 text-gray-700'
+                        };
+                        ?>
+                        <span class="px-2 py-1 text-[10px] font-bold rounded-full <?= $typeClass ?> uppercase">
+                            <?= str_replace('_', ' ', $tx['transaction_type']) ?>
+                        </span>
                     </td>
-                    <td class="px-6 py-4 text-right text-xs text-gray-400">2026-04-20</td>
+                    <td class="px-6 py-4 font-bold text-gray-800">₦<?= number_format($tx['amount'], 2) ?></td>
+                    <td class="px-6 py-4">
+                        <?php 
+                        $statusClass = match($tx['status']) {
+                            'completed', 'released' => 'bg-green-100 text-green-700',
+                            'escrow_hold' => 'bg-yellow-100 text-yellow-700',
+                            'failed' => 'bg-red-100 text-red-700',
+                            default => 'bg-gray-100 text-gray-700'
+                        };
+                        ?>
+                        <span class="px-2 py-1 text-[10px] font-bold rounded-full <?= $statusClass ?> uppercase">
+                            <?= $tx['status'] ?>
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right text-xs text-gray-400"><?= date('Y-m-d', strtotime($tx['created_at'])) ?></td>
                 </tr>
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 font-mono text-xs text-gray-500">TX-99283405</td>
-                    <td class="px-6 py-4 text-sm text-gray-800">Sarah Smith</td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 uppercase">Landlord Payout</span>
-                    </td>
-                    <td class="px-6 py-4 font-bold text-gray-800">$1,150.00</td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-yellow-100 text-yellow-700 uppercase">Processing</span>
-                    </td>
-                    <td class="px-6 py-4 text-right text-xs text-gray-400">2026-04-21</td>
+                <?php endforeach; ?>
+                <?php if(empty($transactions)): ?>
+                <tr>
+                    <td colspan="6" class="px-6 py-10 text-center text-gray-400 italic text-sm">No transactions found.</td>
                 </tr>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>

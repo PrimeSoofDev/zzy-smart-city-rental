@@ -1,9 +1,10 @@
 <?php
-require_once 'app/Models/Review.php';
 
-class ReviewController {
+class ReviewController extends Controller {
     public function submit() {
-        Auth::requireLogin();
+        if (!isset($_SESSION['user_id'])) {
+            $this->redirect('auth/login');
+        }
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = [
@@ -11,7 +12,7 @@ class ReviewController {
                 'reviewee_id' => $_POST['reviewee_id'],
                 'request_id' => $_POST['request_id'],
                 'rating' => $_POST['rating'],
-                'comment' => $_POST['comment']
+                'comment' => $this->sanitize($_POST['comment'])
             ];
 
             if (Review::create($data)) {
@@ -20,30 +21,31 @@ class ReviewController {
                 $_SESSION['error'] = "Failed to submit review.";
             }
 
-            $redirect = $_SESSION['user_role'] === 'landlord' ? '/landlord/disputes' : '/tenant/disputes';
-            header("Location: " . APP_URL . $redirect);
-            exit;
+            $redirect = $_SESSION['role'] === 'Landlord' ? 'landlord/disputes' : 'tenant/disputes';
+            $this->redirect($redirect);
         }
     }
 
     public function adminIndex() {
-        Auth::requireRole('admin', 'staff');
+        RbacMiddleware::check(['Admin', 'Staff']);
         $reviews = Review::getAll();
         
-        $view = 'views/admin/pages/reviews.php';
-        include 'views/layouts/admin_layout.php';
+        require_once "../views/layouts/admin_layout_start.php";
+        $this->view('admin/pages/reviews', ['reviews' => $reviews]);
+        require_once "../views/layouts/admin_layout_end.php";
     }
 
     public function toggleStatus() {
-        Auth::requireRole('admin', 'staff');
-        $id = $_GET['id'];
-        $status = $_GET['status'];
+        RbacMiddleware::check(['Admin', 'Staff']);
+        $id = $_GET['id'] ?? null;
+        $status = $_GET['status'] ?? null;
 
-        if (Review::updateStatus($id, $status)) {
-            $_SESSION['success'] = "Review status updated!";
+        if ($id && $status) {
+            if (Review::updateStatus($id, $status)) {
+                $_SESSION['success'] = "Review status updated!";
+            }
         }
 
-        header("Location: " . APP_URL . "/admin/reviews");
-        exit;
+        $this->redirect('admin/reviews');
     }
 }

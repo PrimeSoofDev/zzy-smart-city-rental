@@ -8,7 +8,15 @@ $siteName = SiteSetting::get('site_name', 'ZZY Smart Rental');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $title ?? $siteName ?> | Future of Living</title>
+    <title><?= $title ?? SiteSetting::get('meta_title', 'ZZY Smart Rental') ?> | Future of Living</title>
+    <meta name="description" content="<?= SiteSetting::get('meta_description', 'Find your future home with ZZY Smart Rental.') ?>">
+    <meta name="keywords" content="<?= SiteSetting::get('meta_keywords', 'rental, housing, nigeria, real estate') ?>">
+    
+    <!-- Social Meta Tags -->
+    <meta property="og:title" content="<?= $title ?? SiteSetting::get('meta_title', 'ZZY Smart Rental') ?>">
+    <meta property="og:description" content="<?= SiteSetting::get('meta_description', 'Find your future home with ZZY Smart Rental.') ?>">
+    <meta property="og:type" content="website">
+    
     <?php if($faviconUrl): ?>
     <link rel="icon" href="<?= APP_URL . '/' . $faviconUrl ?>">
     <?php endif; ?>

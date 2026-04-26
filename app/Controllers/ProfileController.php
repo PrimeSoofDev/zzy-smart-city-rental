@@ -68,4 +68,52 @@ class ProfileController extends Controller {
             $this->redirect('profile/edit');
         }
     }
+
+    public function changePassword() {
+        if (!isset($_SESSION['user_id'])) $this->redirect('auth/login');
+
+        $role = $_SESSION['role'] ?? 'User';
+        $layout = strtolower($role) . "_layout_start.php";
+        if (!file_exists("../views/layouts/$layout")) $layout = "tenant_layout_start.php";
+
+        require_once "../views/layouts/$layout";
+        $this->view('profile/change_password');
+        require_once "../views/layouts/" . str_replace("_start", "_end", $layout);
+    }
+
+    public function updatePassword() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') $this->redirect('profile/change-password');
+        if (!isset($_SESSION['user_id'])) $this->redirect('auth/login');
+
+        $current = $_POST['current_password'];
+        $new = $_POST['new_password'];
+        $confirm = $_POST['confirm_password'];
+
+        if ($new !== $confirm) {
+            $_SESSION['error'] = "New passwords do not match.";
+            $this->redirect('profile/change-password');
+        }
+
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT password FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch();
+
+        if (!password_verify($current, $user['password'])) {
+            $_SESSION['error'] = "Current password is incorrect.";
+            $this->redirect('profile/change-password');
+        }
+
+        $hashed = password_hash($new, PASSWORD_DEFAULT);
+        $stmt = $db->prepare("UPDATE users SET password = ? WHERE id = ?");
+        
+        if ($stmt->execute([$hashed, $_SESSION['user_id']])) {
+            AuditService::log("Changed Password", "User", $_SESSION['user_id']);
+            $_SESSION['success'] = "Password changed successfully!";
+        } else {
+            $_SESSION['error'] = "Failed to update password.";
+        }
+
+        $this->redirect('profile/change-password');
+    }
 }

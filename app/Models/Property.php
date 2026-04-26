@@ -11,7 +11,12 @@ class Property extends Model {
 
 
     public function getAllApproved() {
-        $stmt = $this->db->query("SELECT * FROM properties WHERE status = 'approved'");
+        $stmt = $this->db->query("
+            SELECT p.*, pi.image_url as primary_image
+            FROM properties p
+            LEFT JOIN property_images pi ON p.id = pi.property_id AND pi.is_primary = 1
+            WHERE p.status = 'approved'
+        ");
         return $stmt->fetchAll();
     }
 
@@ -59,6 +64,47 @@ class Property extends Model {
         $stmt->bindValue(2, $excludeId, PDO::PARAM_INT);
         $stmt->bindValue(3, $limit, PDO::PARAM_INT);
         $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function search($location = null, $type = null, $priceRange = null) {
+        $sql = "
+            SELECT p.*, pi.image_url as primary_image
+            FROM properties p
+            LEFT JOIN property_images pi ON p.id = pi.property_id AND pi.is_primary = 1
+            WHERE p.status = 'approved'
+        ";
+        $params = [];
+
+        if ($location) {
+            $sql .= " AND p.address LIKE ?";
+            $params[] = "%$location%";
+        }
+
+        if ($type && $type !== 'All Types') {
+            $sql .= " AND p.property_type = ?";
+            $params[] = strtolower($type);
+        }
+
+        if ($priceRange && $priceRange !== 'Any Price') {
+            if (strpos($priceRange, '-') !== false) {
+                list($min, $max) = explode('-', $priceRange);
+                $minVal = (float)str_replace(['₦', 'k', 'M', ' ', ','], ['', '000', '000000', '', ''], $min);
+                $maxVal = (float)str_replace(['₦', 'k', 'M', ' ', ','], ['', '000', '000000', '', ''], $max);
+                $sql .= " AND p.price BETWEEN ? AND ?";
+                $params[] = $minVal;
+                $params[] = $maxVal;
+            } elseif (strpos($priceRange, '+') !== false) {
+                $minVal = (float)str_replace(['₦', 'k', 'M', '+', ' ', ','], ['', '000', '000000', '', '', ''], $priceRange);
+                $sql .= " AND p.price >= ?";
+                $params[] = $minVal;
+            }
+        }
+
+        $sql .= " ORDER BY p.created_at DESC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 }

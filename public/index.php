@@ -88,6 +88,8 @@ $router->add('admin/updateSettings', 'AdminController', 'updateSettings');
 $router->add('admin/add-user', 'AdminController', 'addUser');
 $router->add('auth/reset-password', 'AuthController', 'resetPasswordRequest');
 $router->add('auth/set-password', 'AuthController', 'setPassword');
+$router->add('auth/verify-otp', 'AuthController', 'verifyOtpView');
+$router->add('auth/verify-otp-submit', 'AuthController', 'verifyOtpSubmit');
 $router->add('admin/landlords', 'AdminController', 'landlords');
 $router->add('admin/edit-user', 'AdminController', 'editUser');
 $router->add('admin/update-user', 'AdminController', 'updateLandlord');
@@ -95,12 +97,19 @@ $router->add('admin/approve-user', 'AdminController', 'approveUser');
 $router->add('admin/reject-user', 'AdminController', 'rejectUser');
 $router->add('admin/reject-user-with-reason', 'AdminController', 'rejectUserWithReason');
 $router->add('admin/ban-user', 'AdminController', 'banUser');
+$router->add('profile/edit', 'ProfileController', 'edit');
+$router->add('profile/update', 'ProfileController', 'update');
+$router->add('profile/change-password', 'ProfileController', 'changePassword');
+$router->add('profile/update-password', 'ProfileController', 'updatePassword');
+
 $router->add('admin/update-user-profile', 'AdminController', 'updateUserProfile');
 $router->add('admin/approve-property', 'AdminController', 'approveProperty');
 $router->add('admin/reject-property', 'AdminController', 'rejectProperty');
 $router->add('admin/approve-landlord', 'AdminController', 'approveLandlord');
 $router->add('admin/delete-user', 'AdminController', 'deleteLandlord');
 $router->add('admin/manageUser', 'AdminController', 'manageUser');
+$router->add('admin/logs', 'AdminController', 'logs');
+$router->add('admin/export-logs', 'AdminController', 'exportLogs');
 $router->add('notifications', 'NotificationController', 'index');
 $router->add('notifications/mark-read', 'NotificationController', 'markRead');
 
@@ -108,5 +117,7 @@ $router->add('messages', 'MessageController', 'index');
 $router->add('messages/fetch', 'MessageController', 'fetchThread');
 $router->add('messages/send', 'MessageController', 'send');
 $router->add('messages/uploadFile', 'MessageController', 'uploadFile');
+$router->add('api/otp/send', 'OtpController', 'sendOtp');
+$router->add('api/otp/verify', 'OtpController', 'verifyOtp');
 
 $router->dispatch($_SERVER['REQUEST_URI']);

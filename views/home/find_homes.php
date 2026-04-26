@@ -11,50 +11,46 @@ include '../views/layouts/guest_layout_start.php';
             </div>
 
             <!-- Filters -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
+            <form action="<?= APP_URL ?>/find-homes" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                     <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Location</label>
-                    <select class="w-full bg-transparent border-none outline-none font-bold text-slate-700">
-                        <option>Lagos, Nigeria</option>
-                        <option>Abuja, Nigeria</option>
-                        <option>Port Harcourt</option>
-                    </select>
+                    <input type="text" name="location" value="<?= htmlspecialchars($filters['location'] ?? 'Port Harcourt') ?>" placeholder="City or State" class="w-full bg-transparent border-none outline-none font-bold text-slate-700">
                 </div>
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                     <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Property Type</label>
-                    <select class="w-full bg-transparent border-none outline-none font-bold text-slate-700">
-                        <option>All Types</option>
-                        <option>Apartment</option>
-                        <option>Duplex</option>
-                        <option>Studio</option>
+                    <select name="type" class="w-full bg-transparent border-none outline-none font-bold text-slate-700 cursor-pointer">
+                        <option value="All Types">All Types</option>
+                        <option value="Apartment" <?= (($filters['type'] ?? '') === 'Apartment') ? 'selected' : '' ?>>Apartment</option>
+                        <option value="House" <?= (($filters['type'] ?? '') === 'House') ? 'selected' : '' ?>>House</option>
+                        <option value="Commercial" <?= (($filters['type'] ?? '') === 'Commercial') ? 'selected' : '' ?>>Commercial</option>
+                        <option value="Land" <?= (($filters['type'] ?? '') === 'Land') ? 'selected' : '' ?>>Land</option>
                     </select>
                 </div>
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                     <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Price Range</label>
-                    <select class="w-full bg-transparent border-none outline-none font-bold text-slate-700">
-                        <option>Any Price</option>
-                        <option>₦500k - ₦2M</option>
-                        <option>₦2M - ₦5M</option>
-                        <option>₦5M+</option>
+                    <select name="price" class="w-full bg-transparent border-none outline-none font-bold text-slate-700 cursor-pointer">
+                        <option value="Any Price">Any Price</option>
+                        <option value="₦500k - ₦2M" <?= (($filters['price'] ?? '') === '₦500k - ₦2M') ? 'selected' : '' ?>>₦500k - ₦2M</option>
+                        <option value="₦2M - ₦5M" <?= (($filters['price'] ?? '') === '₦2M - ₦5M') ? 'selected' : '' ?>>₦2M - ₦5M</option>
+                        <option value="₦5M+" <?= (($filters['price'] ?? '') === '₦5M+') ? 'selected' : '' ?>>₦5M+</option>
                     </select>
                 </div>
-                <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-blue-500/20 active:scale-95">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-blue-500/20 active:scale-95">
                     Apply Filters
                 </button>
-            </div>
+            </form>
 
             <!-- Property Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <?php foreach ($properties as $property): ?>
                     <?php 
-                        $images = json_decode($property['images'], true) ?: [];
-                        $firstImage = !empty($images) ? APP_URL . '/' . $images[0] : 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=800';
+                        $firstImage = !empty($property['primary_image']) ? APP_URL . '/' . $property['primary_image'] : 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=800';
                     ?>
                     <div class="group bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-900/5">
                         <div class="h-64 overflow-hidden relative">
                             <img src="<?= $firstImage ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                             <div class="absolute top-6 left-6 px-4 py-2 bg-white/90 backdrop-blur-md rounded-2xl text-[10px] font-black text-slate-900 uppercase tracking-widest">
-                                <?= $property['type'] ?>
+                                <?= htmlspecialchars($property['property_type'] ?? 'House') ?>
                             </div>
                             <div class="absolute bottom-6 right-6 px-4 py-2 bg-blue-600 text-white rounded-2xl text-sm font-black">
                                 ₦<?= number_format($property['price']) ?>

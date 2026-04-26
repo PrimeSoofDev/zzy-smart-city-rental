@@ -15,11 +15,21 @@ class AdminController extends Controller {
         $totalProperties = $db->query("SELECT COUNT(*) FROM properties")->fetchColumn();
         $pendingVerifications = $db->query("SELECT COUNT(*) FROM properties WHERE status = 'pending_verification'")->fetchColumn();
 
+        // Financial Overview Data
+        $commissionRate = (float)SiteSetting::get('commission_rate', 15);
+        
+        $totalVolume = $db->query("SELECT SUM(amount) FROM transactions WHERE status IN ('completed', 'escrow_hold', 'released') AND transaction_type = 'escrow_deposit'")->fetchColumn() ?: 0;
+        $escrowFunds = $db->query("SELECT SUM(amount) FROM transactions WHERE status = 'escrow_hold'")->fetchColumn() ?: 0;
+        $totalPayouts = $db->query("SELECT SUM(amount) FROM transactions WHERE transaction_type = 'landlord_payout' AND status = 'completed'")->fetchColumn() ?: 0;
+        
+        // Estimated Platform Earnings (Commission)
+        $totalEarnings = $totalVolume * ($commissionRate / 100);
+
         // Analytical Data: Monthly Revenue (Platform Volume)
         $revenueData = $db->query("
             SELECT DATE_FORMAT(created_at, '%b %Y') as label, SUM(amount) as total 
             FROM transactions 
-            WHERE status = 'completed' OR status = 'escrow_hold'
+            WHERE status IN ('completed', 'escrow_hold', 'released')
             GROUP BY label 
             ORDER BY created_at ASC 
             LIMIT 6
@@ -55,7 +65,11 @@ class AdminController extends Controller {
             'stats' => [
                 'totalUsers' => $totalUsers,
                 'totalProperties' => $totalProperties,
-                'pendingVerifications' => $pendingVerifications
+                'pendingVerifications' => $pendingVerifications,
+                'totalVolume' => $totalVolume,
+                'totalEarnings' => $totalEarnings,
+                'escrowFunds' => $escrowFunds,
+                'totalPayouts' => $totalPayouts
             ],
             'analytics' => [
                 'revenue' => $revenueData,
@@ -208,9 +222,57 @@ class AdminController extends Controller {
     public function transactions() {
         RbacMiddleware::check(['Admin']);
         $db = Database::getInstance()->getConnection();
-        $transactions = $db->query("SELECT t.*, u.username FROM transactions t JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC")->fetchAll();
+        
+        $type = $_GET['type'] ?? 'all';
+        $status = $_GET['status'] ?? 'all';
 
-        $this->renderAdminView('transactions', ['transactions' => $transactions]);
+        $query = "SELECT t.*, u.username FROM transactions t JOIN users u ON t.user_id = u.id";
+        $where = [];
+        $params = [];
+
+        if ($type !== 'all') {
+            $where[] = "t.transaction_type = ?";
+            $params[] = $type;
+        }
+
+        if ($status !== 'all') {
+            $where[] = "t.status = ?";
+            $params[] = $status;
+        }
+
+        if (!empty($where)) {
+            $query .= " WHERE " . implode(" AND ", $where);
+        }
+
+        $query .= " ORDER BY t.created_at DESC";
+        $stmt = $db->prepare($query);
+        $stmt->execute($params);
+        $transactions = $stmt->fetchAll();
+
+        // Calculate Stats (Global, not filtered for overview)
+        $escrowBalance = $db->query("SELECT SUM(amount) FROM transactions WHERE status = 'escrow_hold'")->fetchColumn() ?: 0;
+        $monthlyRevenue = $db->query("
+            SELECT SUM(amount * (CAST(setting_value AS DECIMAL)/100)) 
+            FROM transactions t 
+            JOIN system_settings s ON s.setting_key = 'commission_rate'
+            WHERE t.status IN ('completed', 'released') 
+            AND t.transaction_type = 'escrow_deposit'
+            AND MONTH(t.created_at) = MONTH(CURRENT_DATE())
+        ")->fetchColumn() ?: 0;
+        $failedCount = $db->query("SELECT COUNT(*) FROM transactions WHERE status = 'failed'")->fetchColumn();
+
+        $this->renderAdminView('transactions', [
+            'transactions' => $transactions,
+            'stats' => [
+                'escrowBalance' => $escrowBalance,
+                'monthlyRevenue' => $monthlyRevenue,
+                'failedCount' => $failedCount
+            ],
+            'filters' => [
+                'type' => $type,
+                'status' => $status
+            ]
+        ]);
     }
 
     public function requests() {
@@ -282,9 +344,54 @@ class AdminController extends Controller {
     public function logs() {
         RbacMiddleware::check(['Admin']);
         $db = Database::getInstance()->getConnection();
-        $logs = $db->query("SELECT * FROM audit_logs ORDER BY created_at DESC")->fetchAll();
+        
+        $actionFilter = $_GET['action'] ?? null;
+        $whereClause = "";
+        $params = [];
 
-        $this->renderAdminView('logs', ['logs' => $logs]);
+        if ($actionFilter) {
+            $whereClause = "WHERE a.action LIKE ?";
+            $params[] = "%$actionFilter%";
+        }
+        
+        $stmt = $db->prepare("
+            SELECT a.*, u.username, u.full_name, r.role_name as user_role
+            FROM audit_logs a
+            LEFT JOIN users u ON a.user_id = u.id
+            LEFT JOIN user_roles ur ON u.id = ur.user_id
+            LEFT JOIN roles r ON ur.role_id = r.id
+            $whereClause
+            ORDER BY a.created_at DESC
+            LIMIT 100
+        ");
+        $stmt->execute($params);
+        $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $this->renderAdminView('logs', ['logs' => $logs, 'currentFilter' => $actionFilter]);
+    }
+
+    public function exportLogs() {
+        RbacMiddleware::check(['Admin']);
+        $db = Database::getInstance()->getConnection();
+        
+        $logs = $db->query("
+            SELECT a.created_at, u.username, a.action, a.entity_type, a.entity_id, a.ip_address
+            FROM audit_logs a
+            LEFT JOIN users u ON a.user_id = u.id
+            ORDER BY a.created_at DESC
+        ")->fetchAll(PDO::FETCH_ASSOC);
+
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="audit_logs_'.date('Y-m-d').'.csv"');
+        
+        $output = fopen('php://output', 'w');
+        fputcsv($output, ['Timestamp', 'User', 'Action', 'Entity Type', 'Entity ID', 'IP Address']);
+        
+        foreach ($logs as $log) {
+            fputcsv($output, $log);
+        }
+        fclose($output);
+        exit;
     }
 
     public function settings() {
@@ -304,10 +411,35 @@ class AdminController extends Controller {
         RbacMiddleware::check(['Admin']);
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = Database::getInstance()->getConnection();
-            foreach ($_POST['settings'] as $key => $value) {
-                $stmt = $db->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = ?");
-                $stmt->execute([$value, $key]);
+            
+            // Handle regular settings
+            if (isset($_POST['settings'])) {
+                foreach ($_POST['settings'] as $key => $value) {
+                    $stmt = $db->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = ?");
+                    $stmt->execute([$value, $key]);
+                }
             }
+
+            // Handle Branding Uploads
+            $uploadDir = 'public/uploads/branding/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+
+            foreach (['logo', 'favicon'] as $type) {
+                if (isset($_FILES[$type]) && $_FILES[$type]['error'] === UPLOAD_ERR_OK) {
+                    $ext = pathinfo($_FILES[$type]['name'], PATHINFO_EXTENSION);
+                    $filename = $type . '_' . time() . '.' . $ext;
+                    $targetPath = $uploadDir . $filename;
+                    
+                    if (move_uploaded_file($_FILES[$type]['tmp_name'], $targetPath)) {
+                        $stmt = $db->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = ?");
+                        $stmt->execute([$targetPath, $type . '_url']);
+                    }
+                }
+            }
+            
+            AuditService::log("Updated System Settings & Branding", "Global", 0);
+            
+            $_SESSION['success'] = "Settings and branding updated successfully!";
             $this->redirect('admin/settings');
         }
     }
@@ -330,8 +462,10 @@ class AdminController extends Controller {
             $db->beginTransaction();
 
             try {
-                $stmt = $db->prepare("INSERT INTO users (username, email, phone, password, status) VALUES (?, ?, ?, ?, 'verified')");
-                $stmt->execute([$username, $email, $phone, $hashedPassword]);
+                // For Staff and Lawyer, we set status to 'pending' so they must verify via OTP
+                $initialStatus = in_array($role, ['Staff', 'Lawyer']) ? 'pending' : 'verified';
+                $stmt = $db->prepare("INSERT INTO users (username, email, phone, password, status) VALUES (?, ?, ?, ?, ?)");
+                $stmt->execute([$username, $email, $phone, $hashedPassword, $initialStatus]);
                 $userId = $db->lastInsertId();
 
                 $roleStmt = $db->prepare("SELECT id FROM roles WHERE role_name = ?");
@@ -355,9 +489,26 @@ class AdminController extends Controller {
                 $expiresAt = date('Y-m-d H:i:s', strtotime('+24 hours'));
                 $db->prepare("INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, ?)")->execute([$userId, $token, $expiresAt]);
 
+                // Send OTP for identity verification
+                $otpService = new OtpService();
+                $otpChannel = $_POST['otp_channel'] ?? 'email';
+                $otpIdentifier = ($otpChannel === 'email') ? $email : $phone;
+                
+                $otpSent = $otpService->sendOtp($otpIdentifier, $otpChannel, $userId);
+
+                AuditService::log("Created New User", $role, $userId);
+
                 $db->commit();
                 $resetLink = APP_URL . "/auth/set-password?token=" . $token;
-                $_SESSION['success'] = "User created! Invite link: " . $resetLink;
+                
+                $msg = "User created! Invite link: " . $resetLink;
+                if ($otpSent) {
+                    $msg .= " | OTP sent via " . ucfirst($otpChannel);
+                } else {
+                    $msg .= " | Warning: Failed to send OTP.";
+                }
+                
+                $_SESSION['success'] = $msg;
                 $this->redirect('admin/add-user');
 
             } catch (Exception $e) {
@@ -596,13 +747,16 @@ class AdminController extends Controller {
             try {
                 $db->prepare("DELETE FROM user_roles WHERE user_id = ?")->execute([$userId]);
                 $db->prepare("DELETE FROM users WHERE id = ?")->execute([$userId]);
+                
+                AuditService::log("Deleted User Account", "User", $userId);
+                
                 $db->commit();
-                $_SESSION['success'] = "Landlord account and all associated data deleted.";
+                $_SESSION['success'] = "User account deleted successfully.";
             } catch (Exception $e) {
                 $db->rollBack();
                 $_SESSION['error'] = "Delete failed: " . $e->getMessage();
             }
-            $this->redirect('admin/properties');
+            $this->redirect('admin/dashboard');
         }
     }
 

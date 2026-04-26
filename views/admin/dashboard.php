@@ -16,45 +16,66 @@
         </div>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative group overflow-hidden">
-             <div class="relative z-10">
-                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Total Users</p>
-                <h3 class="text-4xl font-black text-slate-900 tracking-tighter"><?= number_format($stats['totalUsers']) ?></h3>
-                <div class="mt-4 flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase">
-                    <i class="fas fa-arrow-up"></i> 12% Growth
-                </div>
+    <!-- Financial Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl group-hover:bg-blue-600/20 transition-all"></div>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">Total Platform Volume</p>
+            <h3 class="text-3xl font-black text-white tracking-tighter">₦<?= number_format($stats['totalVolume']) ?></h3>
+            <div class="mt-4 flex items-center gap-2 text-blue-400 text-[10px] font-black uppercase">
+                <i class="fas fa-globe"></i> Gross Flow
             </div>
         </div>
-        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative group overflow-hidden">
-             <div class="relative z-10">
-                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Properties</p>
-                <h3 class="text-4xl font-black text-slate-900 tracking-tighter"><?= number_format($stats['totalProperties']) ?></h3>
-                <div class="mt-4 flex items-center gap-2 text-blue-500 text-[10px] font-black uppercase">
-                    <i class="fas fa-building"></i> Listed
-                </div>
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden group">
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Estimated Earnings</p>
+            <h3 class="text-3xl font-black text-slate-900 tracking-tighter">₦<?= number_format($stats['totalEarnings']) ?></h3>
+            <div class="mt-4 flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase">
+                <i class="fas fa-percentage"></i> Platform Profit
             </div>
         </div>
-        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative group overflow-hidden">
-             <div class="relative z-10">
-                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Pending Approval</p>
-                <h3 class="text-4xl font-black text-slate-900 tracking-tighter"><?= number_format($stats['pendingVerifications']) ?></h3>
-                <div class="mt-4 flex items-center gap-2 text-amber-500 text-[10px] font-black uppercase">
-                    <i class="fas fa-clock"></i> Action Needed
-                </div>
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden group">
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Funds in Escrow</p>
+            <h3 class="text-3xl font-black text-slate-900 tracking-tighter">₦<?= number_format($stats['escrowFunds']) ?></h3>
+            <div class="mt-4 flex items-center gap-2 text-amber-500 text-[10px] font-black uppercase">
+                <i class="fas fa-shield-alt"></i> Secure Holdings
             </div>
         </div>
-        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative group overflow-hidden">
-             <div class="relative z-10">
-                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Monthly Volume</p>
-                <?php 
-                    $totalRev = array_sum(array_column($analytics['revenue'], 'total'));
-                ?>
-                <h3 class="text-4xl font-black text-slate-900 tracking-tighter">₦<?= number_format($totalRev ?: 1450000) ?></h3>
-                <div class="mt-4 flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase">
-                    <i class="fas fa-chart-line"></i> Performance
-                </div>
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden group">
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Landlord Payouts</p>
+            <h3 class="text-3xl font-black text-slate-900 tracking-tighter">₦<?= number_format($stats['totalPayouts']) ?></h3>
+            <div class="mt-4 flex items-center gap-2 text-indigo-500 text-[10px] font-black uppercase">
+                <i class="fas fa-hand-holding-usd"></i> Distributed
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Operational Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-6">
+            <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-xl">
+                <i class="fas fa-users"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-none mb-2">Total Users</p>
+                <h4 class="text-xl font-black text-slate-900"><?= number_format($stats['totalUsers']) ?></h4>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-6">
+            <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-xl">
+                <i class="fas fa-building"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-none mb-2">Live Properties</p>
+                <h4 class="text-xl font-black text-slate-900"><?= number_format($stats['totalProperties']) ?></h4>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-6">
+            <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 text-xl">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-none mb-2">Pending Verifications</p>
+                <h4 class="text-xl font-black text-slate-900"><?= number_format($stats['pendingVerifications']) ?></h4>
             </div>
         </div>
     </div>
