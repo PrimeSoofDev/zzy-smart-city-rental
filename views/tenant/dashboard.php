@@ -59,7 +59,7 @@
         
         map = L.map('map', {
             zoomControl: false
-        }).setView(lagos, 12);
+        }).setView(ph, 12);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
