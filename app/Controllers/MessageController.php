@@ -154,9 +154,15 @@ class MessageController extends Controller {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => true]);
                 exit;
+            } else {
+                error_log("Message::send failed for user " . $userId);
             }
+        } else {
+            error_log("Message send validation failed. receiver_id: $receiverId, message empty: " . ($message === '') . ", attachment_id: $attachmentId");
         }
-        echo json_encode(['success' => false]);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Validation failed or database error']);
+        exit;
     }
 
     public function uploadFile() {
@@ -189,12 +195,17 @@ class MessageController extends Controller {
             'audio/wav' => 'wav',
         ];
 
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mimeType = $finfo->file($file['tmp_name']);
+        if (class_exists('finfo')) {
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($file['tmp_name']);
+        } else {
+            // Fallback for systems where fileinfo is not enabled
+            $mimeType = $file['type'];
+        }
 
         if (!array_key_exists($mimeType, $allowedTypes)) {
             header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Invalid file type']);
+            echo json_encode(['success' => false, 'error' => 'Invalid file type: ' . $mimeType]);
             exit;
         }
 

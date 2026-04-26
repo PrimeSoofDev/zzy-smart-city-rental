@@ -4,14 +4,16 @@
 class Message {
     public static function send($senderId, $receiverId, $message, $type = 'text', $attachmentId = null) {
         $db = Database::getInstance()->getConnection();
+        $attachmentId = !empty($attachmentId) ? $attachmentId : null;
         $stmt = $db->prepare("INSERT INTO messages (sender_id, receiver_id, message, type, attachment_id) VALUES (?, ?, ?, ?, ?)");
         return $stmt->execute([$senderId, $receiverId, $message, $type, $attachmentId]);
     }
 
     public static function createAttachment($filePath, $fileName, $fileType, $fileSize) {
         $db = Database::getInstance()->getConnection();
-        $stmt = $db->prepare("INSERT INTO attachments (file_path, file_name, file_type, file_size) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$filePath, $fileName, $fileType, $fileSize]);
+        // Insert with file_type_mime matching file_type to satisfy the NOT NULL constraint
+        $stmt = $db->prepare("INSERT INTO attachments (file_path, file_name, file_type, file_type_mime, file_size) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$filePath, $fileName, $fileType, $fileType, $fileSize]);
         return $db->lastInsertId();
     }
 

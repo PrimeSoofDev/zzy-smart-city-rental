@@ -308,7 +308,11 @@
         const attachmentId = document.getElementById('hiddenAttachmentId')?.value;
         const messageType = document.getElementById('hiddenMessageType')?.value || 'text';
 
-        if (!text && !attachmentId && !activeContactId) return;
+        if (!activeContactId) {
+            alert("Please select a contact first.");
+            return;
+        }
+        if (!text && !attachmentId) return;
 
         const formData = new FormData();
         formData.append('receiver_id', activeContactId);
@@ -327,9 +331,15 @@
             const data = await response.json();
             if (data.success) {
                 fetchMessages(true);
+                // Reset attachment state
                 if (document.getElementById('hiddenAttachmentId')) {
                     document.getElementById('hiddenAttachmentId').value = '';
                 }
+                if (document.getElementById('hiddenMessageType')) {
+                    document.getElementById('hiddenMessageType').value = 'text';
+                }
+            } else {
+                alert("Server error: " + (data.error || "Unknown error"));
             }
         } catch (error) {
             console.error('Error sending message:', error);
