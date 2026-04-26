@@ -54,8 +54,8 @@
         // Initial properties from PHP
         const initialProperties = <?= json_encode($properties) ?>;
         
-        // Default center: Lagos, Nigeria
-        const lagos = [6.5244, 3.3792];
+        // Default center: Port Harcourt, Rivers State
+        const ph = [4.8156, 7.0498];
         
         map = L.map('map', {
             zoomControl: false
