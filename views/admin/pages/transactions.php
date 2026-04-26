@@ -18,6 +18,29 @@
     </div>
 </div>
 
+<!-- Financial Trends Chart -->
+<div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 mb-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+            <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight">Marketplace Cashflow Trend</h3>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Tenant Deposits vs Landlord Payouts</p>
+        </div>
+        <div class="flex gap-6">
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 bg-blue-600 rounded-full"></span>
+                <span class="text-[10px] font-black text-gray-500 uppercase">Tenant Payments</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 bg-emerald-500 rounded-full"></span>
+                <span class="text-[10px] font-black text-gray-500 uppercase">Landlord Earnings</span>
+            </div>
+        </div>
+    </div>
+    <div class="h-64 w-full">
+        <canvas id="cashflowTrendChart"></canvas>
+    </div>
+</div>
+
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
     <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h3 class="font-bold text-gray-800">Transaction Ledger</h3>
@@ -96,29 +119,55 @@
             </tbody>
         </table>
     </div>
-    
-    <!-- Financial Summary Bar -->
-    <?php
-    $totalTenantPayments = 0;
-    $totalLandlordEarnings = 0;
-    foreach($transactions as $tx) {
-        if ($tx['transaction_type'] === 'escrow_deposit' && $tx['status'] !== 'failed') {
-            $totalTenantPayments += $tx['amount'];
-        }
-        if ($tx['transaction_type'] === 'landlord_payout' && $tx['status'] === 'completed') {
-            $totalLandlordEarnings += $tx['amount'];
-        }
-    }
-    ?>
-    <div class="p-6 bg-gray-50 border-t border-gray-100 flex flex-col md:flex-row justify-end items-center gap-8">
-        <div class="flex items-center gap-3">
-            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Total Tenant Payments</span>
-            <span class="text-xl font-black text-blue-600">₦<?= number_format($totalTenantPayments, 2) ?></span>
-        </div>
-        <div class="hidden md:block w-px h-8 bg-gray-200"></div>
-        <div class="flex items-center gap-3">
-            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Total Landlord Earnings</span>
-            <span class="text-xl font-black text-emerald-600">₦<?= number_format($totalLandlordEarnings, 2) ?></span>
-        </div>
-    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const labels = <?= json_encode(array_column($trends['payments'], 'label')) ?>;
+    const paymentData = <?= json_encode(array_column($trends['payments'], 'total')) ?>;
+    const earningData = <?= json_encode(array_column($trends['earnings'], 'total')) ?>;
+
+    new Chart(document.getElementById('cashflowTrendChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Tenant Payments',
+                    data: paymentData,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderWidth: 4,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff'
+                },
+                {
+                    label: 'Landlord Earnings',
+                    data: earningData,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 4,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: '#f8fafc' },
+                    ticks: { callback: value => '₦' + value.toLocaleString(), font: { size: 10 } }
+                },
+                x: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } }
+            }
+        }
+    });
+</script>

@@ -261,6 +261,25 @@ class AdminController extends Controller {
         ")->fetchColumn() ?: 0;
         $failedCount = $db->query("SELECT COUNT(*) FROM transactions WHERE status = 'failed'")->fetchColumn();
 
+        // Fetch Trend Data for Chart
+        $paymentTrend = $db->query("
+            SELECT DATE_FORMAT(created_at, '%b %Y') as label, SUM(amount) as total 
+            FROM transactions 
+            WHERE transaction_type = 'escrow_deposit' AND status IN ('completed', 'released', 'escrow_hold')
+            GROUP BY label 
+            ORDER BY created_at ASC 
+            LIMIT 6
+        ")->fetchAll(PDO::FETCH_ASSOC);
+
+        $earningTrend = $db->query("
+            SELECT DATE_FORMAT(created_at, '%b %Y') as label, SUM(amount) as total 
+            FROM transactions 
+            WHERE transaction_type = 'landlord_payout' AND status = 'completed'
+            GROUP BY label 
+            ORDER BY created_at ASC 
+            LIMIT 6
+        ")->fetchAll(PDO::FETCH_ASSOC);
+
         $this->renderAdminView('transactions', [
             'transactions' => $transactions,
             'stats' => [
@@ -271,6 +290,10 @@ class AdminController extends Controller {
             'filters' => [
                 'type' => $type,
                 'status' => $status
+            ],
+            'trends' => [
+                'payments' => $paymentTrend,
+                'earnings' => $earningTrend
             ]
         ]);
     }
