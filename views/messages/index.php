@@ -1,3 +1,105 @@
+<style>
+    .chat-container {
+        background-color: #e5ddd5;
+        background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+    }
+    .bubble {
+        position: relative;
+        max-width: 75%;
+        padding: 8px 12px;
+        margin-bottom: 4px;
+        box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+    }
+    .bubble-out {
+        background-color: #dcf8c6;
+        align-self: flex-end;
+        border-radius: 8px 0 8px 8px;
+    }
+    .bubble-in {
+        background-color: #ffffff;
+        align-self: flex-start;
+        border-radius: 0 8px 8px 8px;
+    }
+    .bubble-out::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: -8px;
+        width: 0;
+        height: 0;
+        border: 4px solid transparent;
+        border-left-color: #dcf8c6;
+        border-top-color: #dcf8c6;
+    }
+    .bubble-in::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -8px;
+        width: 0;
+        height: 0;
+        border: 4px solid transparent;
+        border-right-color: #ffffff;
+        border-top-color: #ffffff;
+    }
+    .voice-note-player {
+        display: flex;
+        items-center: center;
+        gap: 10px;
+        min-width: 200px;
+        padding: 4px 0;
+    }
+    .play-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        background: transparent;
+    }
+    .progress-bar-container {
+        flex: 1;
+        height: 4px;
+        background: rgba(0,0,0,0.1);
+        border-radius: 2px;
+        position: relative;
+        cursor: pointer;
+    }
+    .progress-bar-fill {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        background: #34b7f1;
+        border-radius: 2px;
+        width: 0%;
+    }
+    .recording-bar {
+        position: absolute;
+        inset: 0;
+        background: white;
+        display: none;
+        align-items: center;
+        padding: 0 16px;
+        gap: 12px;
+        z-index: 30;
+    }
+    .recording-dot {
+        width: 10px;
+        height: 10px;
+        background: #ff4b2b;
+        border-radius: 50%;
+        animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+        0% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.2); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+</style>
+
 <div class="h-[calc(100vh-100px)] max-h-[800px] max-w-6xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 flex overflow-hidden">
 
     <!-- Contacts Sidebar -->
@@ -64,14 +166,26 @@
         </div>
 
         <!-- Chat Thread -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50" id="chatThread">
+        <div class="flex-1 overflow-y-auto p-6 space-y-2 chat-container flex flex-col" id="chatThread">
             <div class="flex items-center justify-center h-full text-gray-400">
                 <p>Loading messages...</p>
             </div>
         </div>
 
         <!-- Message Input -->
-        <div class="p-4 bg-white border-t border-gray-100">
+        <div class="p-4 bg-white border-t border-gray-100 relative">
+            <div id="recordingBar" class="recording-bar">
+                <div class="recording-dot"></div>
+                <div class="flex-1 font-mono text-red-600" id="recordTimerDisplay">00:00</div>
+                <button type="button" id="btnDeleteRecord" class="text-gray-400 hover:text-red-600 p-2">
+                    <i class="fas fa-trash-alt text-lg"></i>
+                </button>
+                <div class="text-xs text-gray-400 px-4 select-none">Slide to cancel ></div>
+                <button type="button" id="btnFinishRecord" class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+
             <form id="messageForm" class="flex gap-2 items-end">
                 <input type="hidden" id="receiverId" name="receiver_id">
 
@@ -83,38 +197,24 @@
                         <button type="button" id="btnUploadFile" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-3">
                             <i class="fas fa-file-alt text-blue-500"></i> Send File
                         </button>
-                        <button type="button" id="btnRecordVoice" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-3">
-                            <i class="fas fa-microphone text-red-500"></i> Record Voice Note
-                        </button>
                     </div>
                 </div>
 
                 <input type="text" id="messageInput" name="message" autocomplete="off"
                        placeholder="Type your message here..."
-                       class="flex-1 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-3 transition-colors outline-none">
+                       class="flex-1 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-full focus:ring-blue-500 focus:border-blue-500 block w-full p-3 transition-colors outline-none px-6">
 
-                <button type="submit" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-xl text-sm px-5 py-3 text-center transition-colors shadow-md flex items-center gap-2">
-                    <i class="fas fa-paper-plane"></i> <span class="hidden sm:inline">Send</span>
+                <button type="button" id="micBtn" class="w-12 h-12 flex items-center justify-center text-gray-500 hover:text-blue-600 transition-all">
+                    <i class="fas fa-microphone text-xl"></i>
+                </button>
+
+                <button type="submit" id="sendBtn" class="hidden text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full w-12 h-12 flex items-center justify-center transition-colors shadow-md">
+                    <i class="fas fa-paper-plane"></i>
                 </button>
             </form>
         </div>
 
-        <!-- Voice Recording Overlay -->
-        <div id="voiceRecorder" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center">
-                <div class="mb-6">
-                    <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                        <i class="fas fa-microphone text-3xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-900">Recording Voice Note</h3>
-                    <p class="text-sm text-gray-500" id="recordTimer">00:00</p>
-                </div>
-                <div class="flex justify-center gap-4">
-                    <button type="button" id="btnCancelRecord" class="px-6 py-2 rounded-full text-gray-500 font-semibold hover:bg-gray-100 transition-colors">Cancel</button>
-                    <button type="button" id="btnStopRecord" class="px-6 py-2 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors">Stop & Send</button>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Call Modal -->
         <div id="callModal" class="hidden fixed inset-0 bg-slate-900 z-[60] flex flex-col items-center justify-center text-white backdrop-blur-lg">
@@ -223,20 +323,14 @@
         let html = '';
         let lastDate = null;
 
-        messages.forEach(msg => {
+        messages.forEach((msg, index) => {
             const isMe = msg.sender_id == currentUserId;
             const dateObj = new Date(msg.created_at);
             const timeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             const dateStr = dateObj.toLocaleDateString();
 
             if (dateStr !== lastDate) {
-                html += `
-                    <div class="flex justify-center my-4">
-                        <span class="bg-white border border-gray-100 text-gray-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                            ${dateStr}
-                        </span>
-                    </div>
-                `;
+                html += `<div class="flex justify-center my-4"><span class="bg-[#d1e4f6] text-[#128c7e] text-[10px] font-bold px-3 py-1 rounded shadow-sm uppercase tracking-wider">${dateStr}</span></div>`;
                 lastDate = dateStr;
             }
 
@@ -246,7 +340,7 @@
                     contentHtml = `<img src="<?= APP_URL ?>/${msg.file_path}" class="max-w-full rounded-lg mb-1 cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open('<?= APP_URL ?>/${msg.file_path}', '_blank')">`;
                 } else {
                     contentHtml = `
-                        <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors" onclick="window.open('<?= APP_URL ?>/${msg.file_path}', '_blank')">
+                        <div class="flex items-center gap-3 p-2 bg-black/5 rounded-lg border border-black/5 cursor-pointer hover:bg-black/10 transition-colors" onclick="window.open('<?= APP_URL ?>/${msg.file_path}', '_blank')">
                             <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded flex items-center justify-center text-xs font-bold">
                                 ${msg.file_name ? msg.file_name.split('.').pop().toUpperCase() : 'FILE'}
                             </div>
@@ -259,48 +353,112 @@
                 }
             } else if (msg.type === 'voice_note') {
                 contentHtml = `
-                    <div class="flex items-center gap-3 p-2 bg-blue-50 rounded-lg border border-blue-100">
-                        <audio controls class="h-8 w-full max-w-[200px]">
-                            <source src="<?= APP_URL ?>/${msg.file_path}" type="audio/webm">
-                            Your browser does not support the audio element.
-                        </audio>
+                    <div class="voice-note-player" data-src="<?= APP_URL ?>/${msg.file_path}">
+                        <div class="relative">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                <i class="fas fa-microphone"></i>
+                            </div>
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-[8px]">
+                                <i class="fas fa-play text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1 space-y-1">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill"></div>
+                            </div>
+                            <div class="flex justify-between items-center px-0.5">
+                                <span class="text-[9px] text-gray-500 duration">0:00</span>
+                                <button class="play-btn-small text-blue-600"><i class="fas fa-play text-xs"></i></button>
+                            </div>
+                        </div>
                     </div>`;
             } else {
                 contentHtml = `<p class="text-sm break-words whitespace-pre-wrap">${escapeHtml(msg.message || '')}</p>`;
             }
 
-            if (isMe) {
-                html += `
-                    <div class="flex justify-end mb-4 animate-fade-in">
-                        <div class="bg-blue-600 text-white rounded-2xl rounded-tr-sm py-2.5 px-4 max-w-[75%] shadow-sm">
-                            ${contentHtml}
-                            <p class="text-[10px] text-blue-200 text-right mt-1.5 flex items-center justify-end gap-1">
-                                ${timeStr}
-                                <i class="fas fa-check-double ${msg.is_read ? 'text-blue-200' : 'text-blue-400/50'}"></i>
-                            </p>
-                        </div>
+            const tickColor = msg.is_read ? 'text-[#34b7f1]' : 'text-gray-400';
+            const bubbleClass = isMe ? 'bubble bubble-out' : 'bubble bubble-in';
+
+            html += `
+                <div class="${bubbleClass} animate-fade-in">
+                    ${contentHtml}
+                    <div class="text-[10px] ${isMe ? 'text-gray-500' : 'text-gray-400'} text-right mt-1 flex items-center justify-end gap-1">
+                        ${timeStr}
+                        ${isMe ? `<i class="fas fa-check-double ${tickColor}"></i>` : ''}
                     </div>
-                `;
-            } else {
-                html += `
-                    <div class="flex justify-start mb-4 animate-fade-in">
-                        <div class="bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-tl-sm py-2.5 px-4 max-w-[75%] shadow-sm">
-                            ${contentHtml}
-                            <p class="text-[10px] text-gray-400 text-left mt-1.5">${timeStr}</p>
-                        </div>
-                    </div>
-                `;
-            }
+                </div>
+            `;
         });
 
         if (chatThread.innerHTML !== html) {
             const isScrolledToBottom = chatThread.scrollHeight - chatThread.clientHeight <= chatThread.scrollTop + 50;
             chatThread.innerHTML = html;
+            setupAudioPlayers();
             if (scrollToBottom || isScrolledToBottom) {
                 chatThread.scrollTop = chatThread.scrollHeight;
             }
         }
     }
+
+    function setupAudioPlayers() {
+        document.querySelectorAll('.voice-note-player').forEach(player => {
+            if (player.dataset.initialized) return;
+            player.dataset.initialized = "true";
+
+            const audio = new Audio(player.dataset.src);
+            const playBtn = player.querySelector('.play-btn-small');
+            const icon = playBtn.querySelector('i');
+            const fill = player.querySelector('.progress-bar-fill');
+            const durationText = player.querySelector('.duration');
+
+            audio.addEventListener('loadedmetadata', () => {
+                const mins = Math.floor(audio.duration / 60);
+                const secs = Math.floor(audio.duration % 60);
+                durationText.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            });
+
+            audio.addEventListener('timeupdate', () => {
+                const pct = (audio.currentTime / audio.duration) * 100;
+                fill.style.width = pct + '%';
+                const mins = Math.floor(audio.currentTime / 60);
+                const secs = Math.floor(audio.currentTime % 60);
+                durationText.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            });
+
+            audio.addEventListener('ended', () => {
+                icon.className = 'fas fa-play text-xs';
+                fill.style.width = '0%';
+            });
+
+            playBtn.addEventListener('click', () => {
+                if (audio.paused) {
+                    // Pause all other audios
+                    document.querySelectorAll('audio').forEach(a => a.pause());
+                    audio.play();
+                    icon.className = 'fas fa-pause text-xs';
+                } else {
+                    audio.pause();
+                    icon.className = 'fas fa-play text-xs';
+                }
+            });
+
+            player.querySelector('.progress-bar-container').addEventListener('click', (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pct = (e.clientX - rect.left) / rect.width;
+                audio.currentTime = pct * audio.duration;
+            });
+        });
+    }
+
+    messageInput.addEventListener('input', function() {
+        if (this.value.trim().length > 0) {
+            micBtn.classList.add('hidden');
+            sendBtn.classList.remove('hidden');
+        } else {
+            micBtn.classList.remove('hidden');
+            sendBtn.classList.add('hidden');
+        }
+    });
 
     messageForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -321,6 +479,8 @@
         formData.append('type', messageType);
 
         messageInput.value = '';
+        micBtn.classList.remove('hidden');
+        sendBtn.classList.add('hidden');
         messageInput.focus();
 
         try {
@@ -351,14 +511,12 @@
         return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    const attachmentMenuBtn = document.getElementById('attachmentMenuBtn');
-    const attachmentMenu = document.getElementById('attachmentMenu');
-    const btnUploadFile = document.getElementById('btnUploadFile');
-    const btnRecordVoice = document.getElementById('btnRecordVoice');
-    const voiceRecorder = document.getElementById('voiceRecorder');
-    const recordTimer = document.getElementById('recordTimer');
-    const btnCancelRecord = document.getElementById('btnCancelRecord');
-    const btnStopRecord = document.getElementById('btnStopRecord');
+    const micBtn = document.getElementById('micBtn');
+    const sendBtn = document.getElementById('sendBtn');
+    const recordingBar = document.getElementById('recordingBar');
+    const recordTimerDisplay = document.getElementById('recordTimerDisplay');
+    const btnDeleteRecord = document.getElementById('btnDeleteRecord');
+    const btnFinishRecord = document.getElementById('btnFinishRecord');
 
     attachmentMenuBtn.addEventListener('click', () => attachmentMenu.classList.toggle('hidden'));
     document.addEventListener('click', (e) => {
@@ -388,6 +546,8 @@
                     if (!hType.parentElement) messageForm.appendChild(hType);
                     alert('File uploaded! Now click send.');
                     attachmentMenu.classList.add('hidden');
+                    micBtn.classList.add('hidden');
+                    sendBtn.classList.remove('hidden');
                 } else {
                     alert('Error: ' + data.error);
                 }
@@ -397,38 +557,50 @@
     });
 
     let mediaRecorder, audioChunks = [], timerInterval, startTime;
-    btnRecordVoice.addEventListener('click', async () => {
+
+    micBtn.addEventListener('click', async () => {
+        if (!activeContactId) return;
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
             mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
             mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                await uploadVoiceNote(audioBlob);
+                if (audioChunks.length > 0) {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    await uploadVoiceNote(audioBlob);
+                }
             };
             mediaRecorder.start();
             startTime = Date.now();
-            voiceRecorder.classList.remove('hidden');
-            attachmentMenu.classList.add('hidden');
+            recordingBar.style.display = 'flex';
             timerInterval = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                recordTimer.textContent = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
+                recordTimerDisplay.textContent = `${Math.floor(elapsed/60).toString().padStart(2,'0')}:${(elapsed%60).toString().padStart(2,'0')}`;
             }, 1000);
         } catch (e) { alert('Mic access denied.'); }
     });
 
-    btnCancelRecord.addEventListener('click', () => {
-        if (mediaRecorder) mediaRecorder.stop();
-        clearInterval(timerInterval);
-        voiceRecorder.classList.add('hidden');
+    btnDeleteRecord.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            audioChunks = []; // Clear chunks so onstop doesn't upload
+            mediaRecorder.stop();
+        }
+        stopRecordingUI();
     });
 
-    btnStopRecord.addEventListener('click', () => {
-        if (mediaRecorder) mediaRecorder.stop();
-        clearInterval(timerInterval);
-        voiceRecorder.classList.add('hidden');
+    btnFinishRecord.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        stopRecordingUI();
     });
+
+    function stopRecordingUI() {
+        clearInterval(timerInterval);
+        recordingBar.style.display = 'none';
+        recordTimerDisplay.textContent = '00:00';
+    }
 
     async function uploadVoiceNote(blob) {
         const formData = new FormData();
