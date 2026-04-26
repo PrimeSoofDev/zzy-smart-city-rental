@@ -51,11 +51,14 @@
     let markers = [];
     
     function initMap() {
-        // Default center: Lagos, Nigeria (Consistent with landlord side)
+        // Initial properties from PHP
+        const initialProperties = <?= json_encode($properties) ?>;
+        
+        // Default center: Lagos, Nigeria
         const lagos = [6.5244, 3.3792];
         
         map = L.map('map', {
-            zoomControl: false // We'll add it to the bottom right
+            zoomControl: false
         }).setView(lagos, 12);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -66,11 +69,22 @@
             position: 'bottomright'
         }).addTo(map);
 
-        // Map movement events
-        map.on('moveend', updateProperties);
+        // Render initial properties and markers
+        if (initialProperties.length > 0) {
+            renderProperties(initialProperties);
+            
+            // Fit map to markers if we have any with coords
+            const markersWithCoords = initialProperties.filter(p => p.latitude && p.longitude);
+            if (markersWithCoords.length > 0) {
+                const group = new L.featureGroup(markers.filter(m => m.getLatLng()));
+                if (group.getBounds().isValid()) {
+                    map.fitBounds(group.getBounds(), { padding: [50, 50] });
+                }
+            }
+        }
 
-        // Initial Load
-        updateProperties();
+        // Map movement events - only after initial load to allow user to explore
+        map.on('moveend', updateProperties);
 
         // Search Button Logic
         document.getElementById('search-btn').addEventListener('click', async () => {
