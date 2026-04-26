@@ -71,7 +71,7 @@ class AdminController extends Controller {
         $role = $_GET['role'] ?? 'all';
         $db = Database::getInstance()->getConnection();
 
-        $query = "SELECT u.id, u.username, u.email, u.status, r.role_name
+        $query = "SELECT u.id, u.username, u.email, u.phone, u.status, r.role_name
                   FROM users u
                   LEFT JOIN user_roles ur ON u.id = ur.user_id
                   LEFT JOIN roles r ON ur.role_id = r.id";
@@ -86,6 +86,27 @@ class AdminController extends Controller {
         }
 
         $this->renderAdminView('users', ['users' => $users]);
+    }
+
+    public function editUser() {
+        RbacMiddleware::check(['Admin']);
+        $userId = $_GET['id'] ?? null;
+
+        if (!$userId) {
+            $this->redirect('admin/users');
+        }
+
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("SELECT u.*, r.role_name FROM users u LEFT JOIN user_roles ur ON u.id = ur.user_id LEFT JOIN roles r ON ur.role_id = r.id WHERE u.id = ?");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            $_SESSION['error'] = "User not found.";
+            $this->redirect('admin/users');
+        }
+
+        $this->renderAdminView('edit-user', ['user' => $user]);
     }
 
     public function properties() {
@@ -355,6 +376,108 @@ class AdminController extends Controller {
                 $_SESSION['error'] = "Error rejecting user: " . $e->getMessage();
             }
             $this->redirect('admin/verifications');
+        }
+    }
+
+    public function rejectUserWithReason() {
+        RbacMiddleware::check(['Admin', 'Staff']);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_POST['user_id'] ?? null;
+            $reason = $this->sanitize($_POST['reason'] ?? '');
+
+            if (!$userId) {
+                $_SESSION['error'] = "User ID is required.";
+                $this->redirect('admin/users');
+            }
+
+            $db = Database::getInstance()->getConnection();
+            $db->beginTransaction();
+            try {
+                // Get current user ID (who is performing the action)
+                $performedBy = $_SESSION['user_id'] ?? 1;
+
+                // Update user status
+                $stmt = $db->prepare("UPDATE users SET status = 'rejected' WHERE id = ?");
+                $stmt->execute([$userId]);
+
+                // Log the action
+                $actionStmt = $db->prepare("INSERT INTO user_actions (user_id, action_type, reason, performed_by) VALUES (?, 'rejected', ?, ?)");
+                $actionStmt->execute([$userId, $reason, $performedBy]);
+
+                // Send notification
+                Notification::send($userId, "Your account has been REJECTED due to: " . $reason . ". Please contact support for assistance.");
+
+                $db->commit();
+                $_SESSION['success'] = "User rejected successfully.";
+            } catch (Exception $e) {
+                $db->rollBack();
+                $_SESSION['error'] = "Error rejecting user: " . $e->getMessage();
+            }
+            $this->redirect('admin/users');
+        }
+    }
+
+    public function banUser() {
+        RbacMiddleware::check(['Admin']);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_POST['user_id'] ?? null;
+            $reason = $this->sanitize($_POST['reason'] ?? '');
+
+            if (!$userId) {
+                $_SESSION['error'] = "User ID is required.";
+                $this->redirect('admin/users');
+            }
+
+            $db = Database::getInstance()->getConnection();
+            $db->beginTransaction();
+            try {
+                // Get current user ID (who is performing the action)
+                $performedBy = $_SESSION['user_id'] ?? 1;
+
+                // Update user status
+                $stmt = $db->prepare("UPDATE users SET status = 'banned' WHERE id = ?");
+                $stmt->execute([$userId]);
+
+                // Log the action
+                $actionStmt = $db->prepare("INSERT INTO user_actions (user_id, action_type, reason, performed_by) VALUES (?, 'banned', ?, ?)");
+                $actionStmt->execute([$userId, $reason, $performedBy]);
+
+                // Send notification
+                Notification::send($userId, "Your account has been BANNED due to: " . $reason . ". This decision is final. Please contact support if you believe this is a mistake.");
+
+                $db->commit();
+                $_SESSION['success'] = "User banned successfully.";
+            } catch (Exception $e) {
+                $db->rollBack();
+                $_SESSION['error'] = "Error banning user: " . $e->getMessage();
+            }
+            $this->redirect('admin/users');
+        }
+    }
+
+    public function updateUserProfile() {
+        RbacMiddleware::check(['Admin']);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId = $_POST['user_id'] ?? null;
+            $username = $this->sanitize($_POST['username'] ?? '');
+            $email = $this->sanitize($_POST['email'] ?? '');
+            $phone = $this->sanitize($_POST['phone'] ?? '');
+
+            if (!$userId) {
+                $_SESSION['error'] = "User ID is required.";
+                $this->redirect('admin/users');
+            }
+
+            $db = Database::getInstance()->getConnection();
+            try {
+                $stmt = $db->prepare("UPDATE users SET username = ?, email = ?, phone = ? WHERE id = ?");
+                $stmt->execute([$username, $email, $phone, $userId]);
+
+                $_SESSION['success'] = "User profile updated successfully.";
+            } catch (Exception $e) {
+                $_SESSION['error'] = "Error updating user profile: " . $e->getMessage();
+            }
+            $this->redirect('admin/users');
         }
     }
 
