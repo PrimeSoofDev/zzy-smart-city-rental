@@ -121,6 +121,35 @@
     </div>
 </div>
 
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+    <!-- User Distribution -->
+    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
+        <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight mb-6 text-center">User Ecosystem Distribution</h3>
+        <div class="h-64 w-full relative">
+            <canvas id="userEcosystemChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Quick Stats Summary -->
+    <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-xl flex flex-col justify-center">
+        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-6">Network Health</p>
+        <div class="space-y-6">
+            <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                <span class="text-slate-400 font-bold">Total Verified Tenants</span>
+                <span class="text-2xl font-black text-white"><?= number_format($userStats['tenants']) ?></span>
+            </div>
+            <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                <span class="text-slate-400 font-bold">Total Active Landlords</span>
+                <span class="text-2xl font-black text-white"><?= number_format($userStats['landlords']) ?></span>
+            </div>
+            <div class="flex justify-between items-center p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/20">
+                <span class="text-white/80 font-bold">Marketplace Ratio</span>
+                <span class="text-2xl font-black text-white"><?= $userStats['landlords'] > 0 ? round($userStats['tenants'] / $userStats['landlords'], 1) : 0 ?>:1</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const labels = <?= json_encode(array_column($trends['payments'], 'label')) ?>;
@@ -168,6 +197,35 @@
                 },
                 x: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } }
             }
+        }
+    });
+
+    // Doughnut Chart
+    new Chart(document.getElementById('userEcosystemChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Tenants', 'Landlords'],
+            datasets: [{
+                data: [<?= $userStats['tenants'] ?>, <?= $userStats['landlords'] ?>],
+                backgroundColor: ['#2563eb', '#10b981'],
+                borderWidth: 0,
+                hoverOffset: 20
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: { weight: 'bold', size: 12 }
+                    }
+                }
+            },
+            cutout: '75%'
         }
     });
 </script>

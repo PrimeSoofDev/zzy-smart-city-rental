@@ -294,6 +294,10 @@ class AdminController extends Controller {
             'trends' => [
                 'payments' => $paymentTrend,
                 'earnings' => $earningTrend
+            ],
+            'userStats' => [
+                'tenants' => $db->query("SELECT COUNT(*) FROM users u JOIN user_roles ur ON u.id = ur.user_id JOIN roles r ON ur.role_id = r.id WHERE r.role_name = 'Tenant'")->fetchColumn(),
+                'landlords' => $db->query("SELECT COUNT(*) FROM users u JOIN user_roles ur ON u.id = ur.user_id JOIN roles r ON ur.role_id = r.id WHERE r.role_name = 'Landlord'")->fetchColumn()
             ]
         ]);
     }
