@@ -243,10 +243,10 @@
             let contentHtml = '';
             if (msg.type === 'file') {
                 if (msg.file_type && msg.file_type.startsWith('image/')) {
-                    contentHtml = `<img src="${msg.file_path}" class="max-w-full rounded-lg mb-1 cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open('${msg.file_path}', '_blank')">`;
+                    contentHtml = `<img src="<?= APP_URL ?>/${msg.file_path}" class="max-w-full rounded-lg mb-1 cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open('<?= APP_URL ?>/${msg.file_path}', '_blank')">`;
                 } else {
                     contentHtml = `
-                        <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors" onclick="window.open('${msg.file_path}', '_blank')">
+                        <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors" onclick="window.open('<?= APP_URL ?>/${msg.file_path}', '_blank')">
                             <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded flex items-center justify-center text-xs font-bold">
                                 ${msg.file_name ? msg.file_name.split('.').pop().toUpperCase() : 'FILE'}
                             </div>
@@ -261,7 +261,7 @@
                 contentHtml = `
                     <div class="flex items-center gap-3 p-2 bg-blue-50 rounded-lg border border-blue-100">
                         <audio controls class="h-8 w-full max-w-[200px]">
-                            <source src="${msg.file_path}" type="audio/webm">
+                            <source src="<?= APP_URL ?>/${msg.file_path}" type="audio/webm">
                             Your browser does not support the audio element.
                         </audio>
                     </div>`;

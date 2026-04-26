@@ -179,7 +179,7 @@ class MessageController extends Controller {
         }
 
         $file = $_FILES['file'];
-        $uploadDir = '../storage/chat_uploads/';
+        $uploadDir = 'uploads/chat/';
         if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
 
         // Security: Validate file extension and MIME type
@@ -219,7 +219,7 @@ class MessageController extends Controller {
 
         if (move_uploaded_file($file['tmp_name'], $destination)) {
             // Store browser-relative path in DB
-            $dbPath = 'storage/chat_uploads/' . $uniqueName;
+            $dbPath = 'uploads/chat/' . $uniqueName;
             $attachmentId = Message::createAttachment(
                 $dbPath,
                 $file['name'],
