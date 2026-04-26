@@ -18,30 +18,7 @@
     </div>
 </div>
 
-<!-- Financial Trends Chart -->
-<div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 mb-8">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-            <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight">Marketplace Cashflow Trend</h3>
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Tenant Deposits vs Landlord Payouts</p>
-        </div>
-        <div class="flex gap-6">
-            <div class="flex items-center gap-2">
-                <span class="w-3 h-3 bg-blue-600 rounded-full"></span>
-                <span class="text-[10px] font-black text-gray-500 uppercase">Tenant Payments</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="w-3 h-3 bg-emerald-500 rounded-full"></span>
-                <span class="text-[10px] font-black text-gray-500 uppercase">Landlord Earnings</span>
-            </div>
-        </div>
-    </div>
-    <div class="h-64 w-full">
-        <canvas id="cashflowTrendChart"></canvas>
-    </div>
-</div>
-
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
     <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h3 class="font-bold text-gray-800">Transaction Ledger</h3>
         <form action="" method="GET" class="flex flex-wrap gap-3">
@@ -118,6 +95,29 @@
                 <?php endif; ?>
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Financial Trends Chart -->
+<div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 mb-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+            <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight">Marketplace Cashflow Trend</h3>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Tenant Deposits vs Landlord Payouts</p>
+        </div>
+        <div class="flex gap-6">
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 bg-blue-600 rounded-full"></span>
+                <span class="text-[10px] font-black text-gray-500 uppercase">Tenant Payments</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 bg-emerald-500 rounded-full"></span>
+                <span class="text-[10px] font-black text-gray-500 uppercase">Landlord Earnings</span>
+            </div>
+        </div>
+    </div>
+    <div class="h-64 w-full">
+        <canvas id="cashflowTrendChart"></canvas>
     </div>
 </div>
 
