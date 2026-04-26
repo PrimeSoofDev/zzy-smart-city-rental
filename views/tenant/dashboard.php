@@ -39,80 +39,68 @@
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
-        </div>
     </div>
 </div>
 
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-
-<script src="https://maps.googleapis.com/maps/api/js?key=<?= GOOGLE_MAPS_API_KEY ?>&libraries=places"></script>
 <script>
     let map;
     let markers = [];
-    let autocomplete;
-
+    
     function initMap() {
-        // Default center (Example: New York)
-        const defaultCenter = { lat: 40.7128, lng: -74.0060 };
+        // Default center: Lagos, Nigeria (Consistent with landlord side)
+        const lagos = [6.5244, 3.3792];
+        
+        map = L.map('map', {
+            zoomControl: false // We'll add it to the bottom right
+        }).setView(lagos, 12);
 
-        map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 12,
-            center: defaultCenter,
-            mapTypeControl: false,
-            streetViewControl: false
-        });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
 
-        // Setup Autocomplete
-        const input = document.getElementById('map-search');
-        autocomplete = new google.maps.places.Autocomplete(input);
+        L.control.zoom({
+            position: 'bottomright'
+        }).addTo(map);
 
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
-            if (!place.geometry) return;
+        // Map movement events
+        map.on('moveend', updateProperties);
 
-            map.setCenter(place.geometry.location);
-            map.setZoom(14);
-            updateProperties();
-        });
+        // Initial Load
+        updateProperties();
 
-        document.getElementById('search-btn').addEventListener('click', () => {
-            const query = input.value;
+        // Search Button Logic
+        document.getElementById('search-btn').addEventListener('click', async () => {
+            const query = document.getElementById('map-search').value;
             if (!query) return;
 
-            const geocoder = new google.maps.Geocoder();
-            geocoder.geocode({ address: query }, (results, status) => {
-                if (status === 'OK') {
-                    map.setCenter(results[0].geometry.location);
-                    map.setZoom(14);
-                    updateProperties();
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                if (data.length > 0) {
+                    const { lat, lon } = data[0];
+                    map.setView([lat, lon], 14);
                 }
-            });
+            } catch (error) {
+                console.error('Search error:', error);
+            }
         });
 
-        // Initial load: only update if we have a specific search or center.
-        // Instead of immediately calling updateProperties() which filters by a default center,
-        // we let the initial PHP-rendered list stay until the user moves the map or searches.
-        // map.addListener('bounds_changed', () => {
-        //     updateProperties();
-        // });
-
-        // To prevent the list from disappearing immediately on load,
-        // we only trigger updateProperties on intentional movement or search.
-        map.addListener('dragend', () => {
-            updateProperties();
-        });
-
-        map.addListener('zoom_changed', () => {
-            updateProperties();
+        // Search on Enter
+        document.getElementById('map-search').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('search-btn').click();
         });
     }
 
     async function updateProperties() {
         const bounds = map.getBounds();
-        const north = bounds.getNorthEast().lat();
-        const south = bounds.getSouthWest().lat();
-        const east = bounds.getNorthEast().lng();
-        const west = bounds.getSouthWest().lng();
+        const north = bounds.getNorth();
+        const south = bounds.getSouth();
+        const east = bounds.getEast();
+        const west = bounds.getWest();
 
         try {
             const response = await fetch(`<?= APP_URL ?>/property/searchMap?north=${north}&south=${south}&east=${east}&west=${west}`);
@@ -130,7 +118,7 @@
         const listContainer = document.getElementById('property-list');
 
         // Clear existing markers
-        markers.forEach(m => m.setMap(null));
+        markers.forEach(m => map.removeLayer(m));
         markers = [];
 
         if (properties.length === 0) {
@@ -140,7 +128,7 @@
 
         // Render List
         listContainer.innerHTML = properties.map(p => `
-            <div class="property-item bg-white rounded-2xl shadow-sm border overflow-hidden hover:shadow-md transition p-4" data-id="${p.id}">
+            <div class="property-item bg-white rounded-2xl shadow-sm border overflow-hidden hover:shadow-md transition p-4 cursor-pointer" onclick="focusProperty(${p.latitude}, ${p.longitude})">
                 <h3 class="text-lg font-bold mb-1">${p.title}</h3>
                 <p class="text-gray-600 text-sm mb-2 line-clamp-2">${p.description}</p>
                 <div class="flex justify-between items-center mb-3">
@@ -158,32 +146,24 @@
         // Add Markers
         properties.forEach(p => {
             if (p.latitude && p.longitude) {
-                const marker = new google.maps.Marker({
-                    position: { lat: parseFloat(p.latitude), lng: parseFloat(p.longitude) },
-                    map: map,
-                    title: p.title,
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 10,
-                        fillColor: "#2563eb",
-                        fillOpacity: 1,
-                        strokeWeight: 2,
-                        strokeColor: "#ffffff",
-                    }
-                });
+                const marker = L.marker([parseFloat(p.latitude), parseFloat(p.longitude)], {
+                    icon: L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style="background-color: #2563eb; width: 12px; height: 12px; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+                        iconSize: [12, 12],
+                        iconAnchor: [6, 6]
+                    })
+                }).addTo(map);
 
-                const infoWindow = new google.maps.InfoWindow({
-                    content: `
-                        <div class="p-2">
-                            <h4 class="font-bold text-gray-900">${p.title}</h4>
-                            <p class="text-blue-600 font-bold mb-2">₦${parseFloat(p.price).toLocaleString()}</p>
-                            <a href="<?= APP_URL ?>/tenant/property?id=${p.id}" class="text-xs bg-blue-600 text-white px-2 py-1 rounded block text-center">View Details</a>
-                        </div>
-                    `
-                });
-
-                marker.addListener('click', () => {
-                    infoWindow.open(map, marker);
+                marker.bindPopup(`
+                    <div class="p-2" style="min-width: 150px;">
+                        <h4 class="font-bold text-gray-900 mb-1" style="margin: 0;">${p.title}</h4>
+                        <p class="text-blue-600 font-bold mb-2">₦${parseFloat(p.price).toLocaleString()}</p>
+                        <a href="<?= APP_URL ?>/tenant/property?id=${p.id}" class="text-xs bg-blue-600 text-white px-2 py-1 rounded block text-center no-underline hover:bg-blue-700">View Details</a>
+                    </div>
+                `, {
+                    closeButton: false,
+                    className: 'custom-popup'
                 });
 
                 markers.push(marker);
@@ -191,7 +171,18 @@
         });
     }
 
-
+    function focusProperty(lat, lng) {
+        map.setView([lat, lng], 16, { animate: true });
+    }
 
     window.onload = initMap;
 </script>
+
+<style>
+    .leaflet-container { font-family: inherit; z-index: 1; }
+    .custom-popup .leaflet-popup-content-wrapper { border-radius: 12px; padding: 0; overflow: hidden; }
+    .custom-popup .leaflet-popup-content { margin: 8px; }
+    .leaflet-bar { border: none !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important; }
+    .leaflet-bar a { background-color: white !important; color: #64748b !important; border: 1px solid #f1f5f9 !important; }
+    .leaflet-bar a:hover { background-color: #f8fafc !important; color: #1e293b !important; }
+</style>
