@@ -109,6 +109,42 @@ class AdminController extends Controller {
         $this->renderAdminView('edit-user', ['user' => $user]);
     }
 
+    public function properties() {
+        RbacMiddleware::check(['Admin']);
+        $status = $_GET['status'] ?? 'all';
+        $db = Database::getInstance()->getConnection();
+
+        $query = "SELECT p.*, u.username as landlord_name
+                   FROM properties p
+                   JOIN users u ON p.landlord_id = u.id";
+
+        if ($status !== 'all') {
+            $query .= " WHERE p.status = :status";
+            $stmt = $db->prepare($query);
+            $stmt->execute(['status' => $status]);
+            $properties = $stmt->fetchAll();
+        } else {
+            $properties = $db->query($query)->fetchAll();
+        }
+
+        // Get statistics
+        $totalListings = $db->query("SELECT COUNT(*) FROM properties")->fetchColumn();
+        $pendingVerification = $db->query("SELECT COUNT(*) FROM properties WHERE status = 'pending_verification'")->fetchColumn();
+        $activeProperties = $db->query("SELECT COUNT(*) FROM properties WHERE status = 'approved'")->fetchColumn();
+        $rejectedProperties = $db->query("SELECT COUNT(*) FROM properties WHERE status = 'rejected'")->fetchColumn();
+
+        $this->renderAdminView('properties', [
+            'properties' => $properties,
+            'stats' => [
+                'totalListings' => $totalListings,
+                'pendingVerification' => $pendingVerification,
+                'activeProperties' => $activeProperties,
+                'rejectedProperties' => $rejectedProperties
+            ],
+            'selectedStatus' => $status
+        ]);
+    }
+
     public function exportProperties() {
         RbacMiddleware::check(['Admin']);
         $status = $_GET['status'] ?? 'all';
