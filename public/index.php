@@ -71,6 +71,7 @@ $router->add('lawyer/agreements', 'LawyerController', 'agreements');
 $router->add('admin/dashboard', 'AdminController', 'dashboard');
 $router->add('admin/users', 'AdminController', 'users');
 $router->add('admin/properties', 'AdminController', 'properties');
+$router->add('admin/export-properties', 'AdminController', 'exportProperties');
 $router->add('admin/verifications', 'AdminController', 'verifications');
 $router->add('admin/transactions', 'AdminController', 'transactions');
 $router->add('admin/requests', 'AdminController', 'requests');

@@ -109,7 +109,7 @@ class AdminController extends Controller {
         $this->renderAdminView('edit-user', ['user' => $user]);
     }
 
-    public function properties() {
+    public function exportProperties() {
         RbacMiddleware::check(['Admin']);
         $status = $_GET['status'] ?? 'all';
         $db = Database::getInstance()->getConnection();
@@ -127,7 +127,33 @@ class AdminController extends Controller {
             $properties = $db->query($query)->fetchAll();
         }
 
-        $this->renderAdminView('properties', ['properties' => $properties]);
+        // Generate CSV
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=properties_export_' . date('Y-m-d_H-i-s') . '.csv');
+
+        $output = fopen('php://output', 'w');
+
+        // Add CSV headers
+        fputcsv($output, ['ID', 'Title', 'Landlord', 'Type', 'Price', 'Rooms', 'Bathrooms', 'Address', 'Status', 'Created Date']);
+
+        // Add data rows
+        foreach ($properties as $p) {
+            fputcsv($output, [
+                $p['id'],
+                $p['title'],
+                $p['landlord_name'],
+                ucfirst($p['property_type']),
+                '₦' . number_format($p['price'], 2),
+                $p['rooms'] ?? 'N/A',
+                $p['bathrooms'] ?? 'N/A',
+                $p['address'],
+                ucfirst($p['status']),
+                $p['created_at']
+            ]);
+        }
+
+        fclose($output);
+        exit;
     }
 
     public function verifications() {
