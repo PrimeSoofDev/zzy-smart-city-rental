@@ -53,7 +53,16 @@ class MessageController extends Controller {
                 if ($t['tenant_id']) $contacts[$t['tenant_id']] = ['id' => $t['tenant_id'], 'name' => $t['tenant_name'], 'type' => 'Tenant'];
             }
         } elseif ($role === 'Lawyer') {
-            // Find tenants and landlords for their agreements
+            // Lawyer: can chat with Admin + parties in their agreements
+            $adminStmt = $db->query("
+                SELECT u.id, u.username FROM users u
+                JOIN user_roles ur ON u.id = ur.user_id
+                JOIN roles r ON ur.role_id = r.id
+                WHERE r.role_name = 'Admin' LIMIT 1
+            ");
+            $admin = $adminStmt->fetch();
+            if ($admin) $contacts[$admin['id']] = ['id' => $admin['id'], 'name' => $admin['username'], 'type' => 'Admin'];
+
             $stmt = $db->prepare("
                 SELECT rr.tenant_id, t.username as tenant_name,
                        p.landlord_id, l.username as landlord_name
@@ -71,7 +80,18 @@ class MessageController extends Controller {
                 if ($p['landlord_id']) $contacts[$p['landlord_id']] = ['id' => $p['landlord_id'], 'name' => $p['landlord_name'], 'type' => 'Landlord'];
             }
         } elseif ($role === 'Staff') {
-            // Find tenants and landlords for properties they verified
+            // Staff: can chat with Admin + tenants/landlords from their verified properties
+            // Add Admin contact
+            $adminStmt = $db->query("
+                SELECT u.id, u.username FROM users u
+                JOIN user_roles ur ON u.id = ur.user_id
+                JOIN roles r ON ur.role_id = r.id
+                WHERE r.role_name = 'Admin'
+                LIMIT 1
+            ");
+            $admin = $adminStmt->fetch();
+            if ($admin) $contacts[$admin['id']] = ['id' => $admin['id'], 'name' => $admin['username'], 'type' => 'Admin'];
+
             $stmt = $db->prepare("
                 SELECT rr.tenant_id, t.username as tenant_name,
                        p.landlord_id, l.username as landlord_name
@@ -87,6 +107,24 @@ class MessageController extends Controller {
             foreach ($parties as $p) {
                 if ($p['tenant_id']) $contacts[$p['tenant_id']] = ['id' => $p['tenant_id'], 'name' => $p['tenant_name'], 'type' => 'Tenant'];
                 if ($p['landlord_id']) $contacts[$p['landlord_id']] = ['id' => $p['landlord_id'], 'name' => $p['landlord_name'], 'type' => 'Landlord'];
+            }
+        } elseif ($role === 'Admin') {
+            // Admin: can chat with all Staff and all Lawyers
+            $internalStmt = $db->query("
+                SELECT u.id, u.username, r.role_name
+                FROM users u
+                JOIN user_roles ur ON u.id = ur.user_id
+                JOIN roles r ON ur.role_id = r.id
+                WHERE r.role_name IN ('Staff', 'Lawyer')
+                ORDER BY r.role_name, u.username
+            ");
+            $internalUsers = $internalStmt->fetchAll();
+            foreach ($internalUsers as $u) {
+                $contacts[$u['id']] = [
+                    'id'   => $u['id'],
+                    'name' => $u['username'],
+                    'type' => $u['role_name']
+                ];
             }
         }
 

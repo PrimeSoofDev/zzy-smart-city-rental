@@ -97,6 +97,18 @@ $logoUrl = SiteSetting::get('logo_url');
             <a href="<?= APP_URL ?>/admin/visitors" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'admin/visitors') !== false) ? 'bg-indigo-600 text-white shadow-lg' : '' ?>">
                 <i class="fas fa-eye w-5 text-indigo-400"></i> <span class="sidebar-text">Visitor Analytics</span>
             </a>
+            <?php
+            require_once __DIR__ . '/../../app/Models/Message.php';
+            $unreadMsgs = Message::getUnreadCount($_SESSION['user_id'] ?? 0);
+            ?>
+            <a href="<?= APP_URL ?>/messages" class="sidebar-item flex items-center justify-between px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'messages') !== false) ? 'bg-emerald-600 text-white shadow-lg' : '' ?>">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-comments w-5 text-emerald-400"></i> <span class="sidebar-text">Team Chat</span>
+                </div>
+                <?php if ($unreadMsgs > 0): ?>
+                    <span class="bg-emerald-400 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-full"><?= $unreadMsgs ?></span>
+                <?php endif; ?>
+            </a>
 
             <p class="text-[10px] font-black text-slate-600 uppercase px-6 mb-4 mt-8 tracking-[0.2em] sidebar-section-title">Directory</p>
             <a href="<?= APP_URL ?>/admin/users" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
@@ -120,18 +132,6 @@ $logoUrl = SiteSetting::get('logo_url');
                 <?php endif; ?>
             </a>
             
-            <?php
-            require_once __DIR__ . '/../../app/Models/Message.php';
-            $unreadMsgs = Message::getUnreadCount($_SESSION['user_id'] ?? 0);
-            ?>
-            <a href="<?= APP_URL ?>/messages" class="sidebar-item flex items-center justify-between px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'messages') !== false) ? 'bg-blue-600 text-white shadow-md' : '' ?>">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-envelope w-5"></i> <span class="sidebar-text">Chat</span>
-                </div>
-                <?php if ($unreadMsgs > 0): ?>
-                    <span class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><?= $unreadMsgs ?></span>
-                <?php endif; ?>
-            </a>
             <p class="text-[10px] font-black text-slate-600 uppercase px-6 mb-4 mt-8 tracking-[0.2em] sidebar-section-title">System</p>
             <a href="<?= APP_URL ?>/admin/settings" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
                 <i class="fas fa-cog w-5 text-slate-400"></i> <span class="sidebar-text">Preferences</span>
