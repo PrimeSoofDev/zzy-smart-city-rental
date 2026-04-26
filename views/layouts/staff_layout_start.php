@@ -90,6 +90,9 @@ $logoUrl = SiteSetting::get('logo_url');
             <a href="<?= APP_URL ?>/staff/escrow" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'staff/escrow') !== false) ? 'active-link' : '' ?>">
                 <i class="fas fa-shield-alt w-5 text-green-400"></i> <span class="sidebar-text">Escrow Management</span>
             </a>
+            <a href="<?= APP_URL ?>/admin/reviews" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'admin/reviews') !== false) ? 'active-link' : '' ?>">
+                <i class="fas fa-star w-5 text-amber-400"></i> <span class="sidebar-text">User Reviews</span>
+            </a>
 
             <?php
             require_once __DIR__ . '/../../app/Models/Notification.php';
