@@ -444,8 +444,13 @@
                 hType.type = 'hidden'; hType.id = 'hiddenMessageType'; hType.value = 'voice_note';
                 if (!hType.parentElement) messageForm.appendChild(hType);
                 messageForm.dispatchEvent(new Event('submit'));
+            } else {
+                alert("Voice upload failed: " + (data.error || "Unknown error"));
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e); 
+            alert("Voice upload error: " + e.message);
+        }
     }
 
     const voiceCallBtn = document.getElementById('voiceCallBtn');
