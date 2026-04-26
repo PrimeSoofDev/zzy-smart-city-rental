@@ -196,6 +196,7 @@ class MessageController extends Controller {
             'audio/wav' => 'wav',
             'audio/mp4' => 'mp4',
             'audio/x-m4a' => 'm4a',
+            'video/webm' => 'webm',
         ];
 
         if (class_exists('finfo')) {
