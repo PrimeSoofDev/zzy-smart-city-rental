@@ -2,19 +2,27 @@
 // app/Models/Message.php
 
 class Message {
-    public static function send($senderId, $receiverId, $message) {
+    public static function send($senderId, $receiverId, $message, $type = 'text', $attachmentId = null) {
         $db = Database::getInstance()->getConnection();
-        $stmt = $db->prepare("INSERT INTO messages (sender_id, receiver_id, message) VALUES (?, ?, ?)");
-        return $stmt->execute([$senderId, $receiverId, $message]);
+        $stmt = $db->prepare("INSERT INTO messages (sender_id, receiver_id, message, type, attachment_id) VALUES (?, ?, ?, ?, ?)");
+        return $stmt->execute([$senderId, $receiverId, $message, $type, $attachmentId]);
+    }
+
+    public static function createAttachment($filePath, $fileName, $fileType, $fileSize) {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("INSERT INTO attachments (file_path, file_name, file_type, file_size) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$filePath, $fileName, $fileType, $fileSize]);
+        return $db->lastInsertId();
     }
 
     public static function getThread($user1, $user2) {
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare("
-            SELECT m.*, u.username as sender_name 
+            SELECT m.*, u.username as sender_name, a.file_path, a.file_name, a.file_type, a.file_size
             FROM messages m
             JOIN users u ON m.sender_id = u.id
-            WHERE (m.sender_id = ? AND m.receiver_id = ?) 
+            LEFT JOIN attachments a ON m.attachment_id = a.id
+            WHERE (m.sender_id = ? AND m.receiver_id = ?)
                OR (m.sender_id = ? AND m.receiver_id = ?)
             ORDER BY m.created_at ASC
         ");

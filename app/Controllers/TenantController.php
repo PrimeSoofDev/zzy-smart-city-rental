@@ -280,4 +280,47 @@ class TenantController extends Controller {
 
         $this->redirect('tenant/dashboard');
     }
+
+    /**
+     * Handles raising a dispute for a rental request
+     */
+    public function raiseDispute() {
+        $this->checkVerification();
+        RbacMiddleware::check(['Tenant']);
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('tenant/dashboard');
+        }
+
+        $requestId = $_POST['request_id'] ?? null;
+        $reason = $this->sanitize($_POST['reason'] ?? 'Standard dispute raised.');
+        $userId = $_SESSION['user_id'];
+
+        if (!$requestId) {
+            $_SESSION['error'] = "Invalid Request ID.";
+            $this->redirect('tenant/dashboard');
+        }
+
+        $db = Database::getInstance()->getConnection();
+        
+        try {
+            // Verify the request belongs to the logged-in tenant
+            $stmt = $db->prepare("SELECT rr.*, p.landlord_id, p.title FROM rental_requests rr 
+                                 JOIN properties p ON rr.property_id = p.id
+                                 WHERE rr.id = ? AND rr.tenant_id = ?");
+            $stmt->execute([$requestId, $userId]);
+            $request = $stmt->fetch();
+
+            if (!$request) throw new Exception("Rental request not found.");
+
+            // Update status and notify landlord
+            $db->prepare("UPDATE rental_requests SET status = 'disputed' WHERE id = ?")->execute([$requestId]);
+            Notification::send($request['landlord_id'], "A dispute has been raised for '{$request['title']}' (Request #{$requestId}). Reason: {$reason}");
+            
+            $_SESSION['success'] = "Dispute raised successfully. Funds will remain in escrow until resolved.";
+        } catch (Exception $e) {
+            $_SESSION['error'] = "Error: " . $e->getMessage();
+        }
+        $this->redirect('tenant/dashboard');
+    }
 }

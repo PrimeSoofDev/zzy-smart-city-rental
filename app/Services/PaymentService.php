@@ -82,5 +82,35 @@ class PaymentService {
         }
 
         return json_decode($response, true);
+    /**
+     * Refund a payment to the tenant
+     * @param string $transactionReference The Paystack reference
+     * @param float $amount Amount to refund (in Naira)
+     * @return array Response from Paystack
+     */
+    public function refundPayment($transactionReference, $amount = null) {
+        $data = ['transaction' => $transactionReference];
+        if ($amount) {
+            $data['amount'] = $amount * 100; // Paystack expects kobo
+        }
+
+        return $this->curlRequest("/refund", "POST", $data);
     }
-}
+
+    /**
+     * Transfer funds from the main account to a landlord subaccount
+     * @param string $subaccountCode The landlord's subaccount code
+     * @param float $amount Amount to transfer (in Naira)
+     * @param string $recipientBank { "account_number": "...", "bank": "..." }
+     * @return array Response from Paystack
+     */
+    public function transferFunds($subaccountCode, $amount) {
+        $data = [
+            'amount' => $amount * 100,
+            'reason' => 'Escrow Release - Dispute Resolution',
+            'recipient' => $subaccountCode, // In Paystack, this can be the subaccount code
+        ];
+
+        return $this->curlRequest("/transfer", "POST", $data);
+    }
+

@@ -46,15 +46,70 @@
                             <p class="font-black text-gray-900">₦<?= number_format($item['amount'], 2) ?></p>
                         </div>
                         <?php if($item['status'] == 'escrow_hold'): ?>
-                            <div class="text-right">
-                                <span class="block text-[10px] font-black text-blue-600 uppercase">Held In Escrow</span>
-                                <span class="text-[9px] text-gray-400">Secure & Verified</span>
+                            <div class="text-right flex flex-col items-end gap-2">
+                                <div>
+                                    <span class="block text-[10px] font-black text-blue-600 uppercase">Held In Escrow</span>
+                                    <span class="text-[9px] text-gray-400">Secure & Verified</span>
+                                </div>
+                                <?php if($item['request_status'] === 'disputed'): ?>
+                                    <a href="<?= APP_URL ?>/dispute/portal?request_id=<?= $item['request_id'] ?>" class="px-3 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold hover:bg-amber-100 transition-all flex items-center gap-1">
+                                        <i class="fas fa-gavel"></i> View Dispute
+                                    </a>
+                                <?php else: ?>
+                                    <button onclick="openDisputeModal(<?= $item['request_id'] ?>, '<?= htmlspecialchars($item['property_title']) ?>')" class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-[10px] font-bold hover:bg-red-100 transition-all flex items-center gap-1">
+                                        <i class="fas fa-exclamation-triangle"></i> Dispute
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
+
+<!-- Dispute Modal -->
+<div id="dispute-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-300">
+        <div class="p-8">
+            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-3xl flex items-center justify-center mb-6">
+                <i class="fas fa-exclamation-triangle text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-900 mb-2">Raise a Dispute</h3>
+            <p class="text-slate-500 text-sm mb-6">Tell us why you're disputing the payment for <span id="modal-property-title" class="font-bold text-slate-900"></span>. This will freeze the funds in escrow.</p>
+            
+            <form action="<?= APP_URL ?>/dispute/raise" method="POST">
+                <input type="hidden" name="request_id" id="modal-request-id">
+                <div class="mb-6">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Reason for Dispute</label>
+                    <textarea name="reason" rows="4" class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm focus:ring-2 focus:ring-red-500 outline-none transition-all placeholder:text-slate-300" placeholder="e.g. Property issues or tenant non-compliance..." required></textarea>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeDisputeModal()" class="flex-1 py-4 bg-slate-50 text-slate-500 font-bold rounded-2xl hover:bg-slate-100 transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 py-4 bg-red-600 text-white font-bold rounded-2xl shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all">
+                        Submit Dispute
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDisputeModal(requestId, title) {
+        document.getElementById('modal-request-id').value = requestId;
+        document.getElementById('modal-property-title').innerText = title;
+        document.getElementById('dispute-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDisputeModal() {
+        document.getElementById('dispute-modal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+</script>
     </div>
 <?php endif; ?>
 

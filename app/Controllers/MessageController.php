@@ -132,15 +132,17 @@ class MessageController extends Controller {
         $userId = $_SESSION['user_id'];
         $receiverId = $_POST['receiver_id'] ?? null;
         $message = trim($_POST['message'] ?? '');
+        $type = $_POST['type'] ?? 'text';
+        $attachmentId = $_POST['attachment_id'] ?? null;
 
-        if ($receiverId && $message !== '') {
-            if (Message::send($userId, $receiverId, $message)) {
-                
+        if ($receiverId && ($message !== '' || $attachmentId)) {
+            if (Message::send($userId, $receiverId, $message, $type, $attachmentId)) {
+
                 // Notification alert
                 $db = Database::getInstance()->getConnection();
                 $senderName = $_SESSION['username'] ?? 'Someone';
                 $notifMsg = "You have a new chat message from {$senderName}.";
-                
+
                 // Check if already notified recently to prevent spam
                 $nStmt = $db->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND message = ? AND is_read = 0");
                 $nStmt->execute([$receiverId, $notifMsg]);
@@ -154,5 +156,66 @@ class MessageController extends Controller {
             }
         }
         echo json_encode(['success' => false]);
+    }
+
+    public function uploadFile() {
+        if (!isset($_SESSION['user_id'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        if (!isset($_FILES['file'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'No file uploaded']);
+            exit;
+        }
+
+        $file = $_FILES['file'];
+        $uploadDir = 'storage/chat_uploads/';
+
+        // Security: Validate file extension and MIME type
+        $allowedTypes = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'application/pdf' => 'pdf',
+            'application/msword' => 'doc',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+            'audio/webm' => 'webm',
+            'audio/ogg' => 'ogg',
+            'audio/mpeg' => 'mp3',
+            'audio/wav' => 'wav',
+        ];
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($file['tmp_name']);
+
+        if (!array_key_exists($mimeType, $allowedTypes)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid file type']);
+            exit;
+        }
+
+        $extension = $allowedTypes[$mimeType];
+        $fileName = pathinfo($file['name'], PATHINFO_FILENAME);
+        $uniqueName = uniqid('chat_', true) . '.' . $extension;
+        $destination = $uploadDir . $uniqueName;
+
+        if (move_uploaded_file($file['tmp_name'], $destination)) {
+            $attachmentId = Message::createAttachment(
+                $destination,
+                $file['name'],
+                $mimeType,
+                $file['size']
+            );
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'attachment_id' => $attachmentId]);
+            exit;
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Upload failed']);
+        exit;
     }
 }

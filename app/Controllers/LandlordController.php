@@ -37,7 +37,7 @@ class LandlordController extends Controller {
 
         // Fetch pending payouts (escrow holds)
         $payoutStmt = $db->prepare("
-            SELECT t.*, p.title as property_title, p.address as property_address, tu.username as tenant_name
+            SELECT t.*, p.title as property_title, p.address as property_address, tu.username as tenant_name, rr.status as request_status
             FROM transactions t
             JOIN rental_requests rr ON t.request_id = rr.id
             JOIN properties p ON rr.property_id = p.id
