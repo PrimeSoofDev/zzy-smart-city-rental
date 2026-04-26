@@ -150,9 +150,10 @@
     </div>
 </div>
 
-<script src="https://download.agora.io/npm/@agora-io/agora-rtc-sdk-v3@3.5.0/dist/agora-rtc-sdk-v3.js"></script>
+<script src="https://download.agora.io/sdk/web/AgoraRTC_N-4.11.0.js"></script>
 <script>
     const currentUserId = <?= json_encode($userId) ?>;
+    const agoraAppId = <?= json_encode($agoraAppId) ?>;
     let activeContactId = null;
     let pollInterval = null;
 
@@ -448,20 +449,63 @@
     const btnEndCall = document.getElementById('btnEndCall');
 
     let agoraClient = null;
+    let localTracks = {
+        audioTrack: null,
+        videoTrack: null
+    };
+    let remoteUsers = {};
+
     async function initAgora(type) {
-        const options = { appId: 'YOUR_AGORA_APP_ID', token: null, channel: `chat_${activeContactId}_${currentUserId}` };
-        agoraClient = AgoraRTC.createClient({ mode: 'communication', codec: 'vp8' });
-        try {
-            await agoraClient.join(options.channel, options.token, options.appId);
-            const localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-            await agoraClient.publish([localAudioTrack]);
-            if (type === 'video') {
-                const localVideoTrack = await AgoraRTC.createCameraVideoTrack();
-                await agoraClient.publish([localVideoTrack]);
+        if (!agoraAppId) {
+            alert('Agora App ID is not configured. Please contact the administrator.');
+            return;
+        }
+
+        const channel = `chat_call_${Math.min(currentUserId, activeContactId)}_${Math.max(currentUserId, activeContactId)}`;
+        const token = null; // In production, you should use a token server
+
+        agoraClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+
+        // Handle remote users
+        agoraClient.on("user-published", async (user, mediaType) => {
+            await agoraClient.subscribe(user, mediaType);
+            if (mediaType === "video") {
+                const remoteVideoTrack = user.videoTrack;
+                const remotePlayerContainer = document.createElement("div");
+                remotePlayerContainer.id = `user-${user.uid}`;
+                remotePlayerContainer.className = "w-full h-full absolute inset-0 bg-black";
+                document.getElementById('callModal').appendChild(remotePlayerContainer);
+                remoteVideoTrack.play(remotePlayerContainer);
             }
+            if (mediaType === "audio") {
+                user.audioTrack.play();
+            }
+        });
+
+        try {
+            const uid = await agoraClient.join(agoraAppId, channel, token, currentUserId);
+            
+            // Create and publish local tracks
+            localTracks.audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+            if (type === 'video') {
+                localTracks.videoTrack = await AgoraRTC.createCameraVideoTrack();
+                const localPlayerContainer = document.createElement("div");
+                localPlayerContainer.id = "local-player";
+                localPlayerContainer.className = "w-32 h-32 absolute bottom-24 right-4 bg-black rounded-xl overflow-hidden border-2 border-white/20 z-10";
+                document.getElementById('callModal').appendChild(localPlayerContainer);
+                localTracks.videoTrack.play(localPlayerContainer);
+                await agoraClient.publish([localTracks.audioTrack, localTracks.videoTrack]);
+            } else {
+                await agoraClient.publish([localTracks.audioTrack]);
+            }
+
             btnEndCall.classList.remove('hidden');
             callStatusText.textContent = 'In Call...';
-        } catch (e) { alert('Call connection failed.'); }
+        } catch (e) { 
+            console.error(e);
+            alert('Call connection failed: ' + e.message); 
+            callModal.classList.add('hidden');
+        }
     }
 
     voiceCallBtn.addEventListener('click', () => { if(activeContactId) { initAgora('voice'); showCallModal('Voice Call'); } });
@@ -481,8 +525,27 @@
         btnEndCall.classList.remove('hidden');
         callStatusText.textContent = 'Connected';
     });
-    btnEndCall.addEventListener('click', () => {
-        if (agoraClient) { agoraClient.leave(); agoraClient = null; }
+    btnEndCall.addEventListener('click', async () => {
+        // Stop and close local tracks
+        for (let trackName in localTracks) {
+            var track = localTracks[trackName];
+            if (track) {
+                track.stop();
+                track.close();
+                localTracks[trackName] = null;
+            }
+        }
+
+        // Remove video players
+        const localPlayer = document.getElementById('local-player');
+        if (localPlayer) localPlayer.remove();
+        
+        // Leave the channel
+        if (agoraClient) {
+            await agoraClient.leave();
+            agoraClient = null;
+        }
+
         callModal.classList.add('hidden');
         btnAcceptCall.classList.remove('hidden');
         btnDeclineCall.classList.remove('hidden');

@@ -104,5 +104,6 @@ $router->add('notifications/mark-read', 'NotificationController', 'markRead');
 $router->add('messages', 'MessageController', 'index');
 $router->add('messages/fetch', 'MessageController', 'fetchThread');
 $router->add('messages/send', 'MessageController', 'send');
+$router->add('messages/uploadFile', 'MessageController', 'uploadFile');
 
 $router->dispatch($_SERVER['REQUEST_URI']);

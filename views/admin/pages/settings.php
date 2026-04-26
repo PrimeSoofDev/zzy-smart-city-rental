@@ -90,6 +90,22 @@
             </div>
         </div>
 
+        <!-- Agora API Configuration -->
+        <div class="mt-8">
+            <div class="p-6 border-b border-gray-100 bg-gray-50 rounded-t-2xl">
+                <h3 class="font-bold text-gray-800"><i class="fas fa-video text-red-500 mr-2"></i>Agora API Configuration</h3>
+                <p class="text-sm text-gray-500">Enter your Agora App ID to enable voice and video calling features.</p>
+            </div>
+            <div class="p-6 bg-white border border-t-0 border-gray-100 rounded-b-2xl">
+                <div class="space-y-2 max-w-lg">
+                    <label class="text-sm font-semibold text-gray-600">Agora App ID</label>
+                    <input type="text" name="settings[agora_app_id]" value="<?= htmlspecialchars($settings['agora_app_id'] ?? '') ?>" placeholder="Enter Agora App ID"
+                           class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono text-sm">
+                    <p class="text-[10px] text-gray-400">Required for Real-Time Communication (RTC) features.</p>
+                </div>
+            </div>
+        </div>
+
         <div class="flex justify-end pt-4">
             <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
                 Save Settings

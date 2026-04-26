@@ -108,7 +108,8 @@ class MessageController extends Controller {
         }
 
         require_once "../views/layouts/{$layoutPrefix}_layout_start.php";
-        $this->view('messages/index', ['contacts' => $contacts, 'userId' => $userId]);
+        $agoraAppId = $db->query("SELECT setting_value FROM system_settings WHERE setting_key = 'agora_app_id'")->fetchColumn();
+        $this->view('messages/index', ['contacts' => $contacts, 'userId' => $userId, 'agoraAppId' => $agoraAppId]);
         require_once "../views/layouts/{$layoutPrefix}_layout_end.php";
     }
 
