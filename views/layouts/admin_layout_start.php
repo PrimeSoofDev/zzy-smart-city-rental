@@ -94,6 +94,9 @@ $logoUrl = SiteSetting::get('logo_url');
             <a href="<?= APP_URL ?>/admin/reviews" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'admin/reviews') !== false) ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : '' ?>">
                 <i class="fas fa-star w-5 text-amber-400"></i> <span class="sidebar-text">User Reviews</span>
             </a>
+            <a href="<?= APP_URL ?>/admin/visitors" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'admin/visitors') !== false) ? 'bg-indigo-600 text-white shadow-lg' : '' ?>">
+                <i class="fas fa-eye w-5 text-indigo-400"></i> <span class="sidebar-text">Visitor Analytics</span>
+            </a>
 
             <p class="text-[10px] font-black text-slate-600 uppercase px-6 mb-4 mt-8 tracking-[0.2em] sidebar-section-title">Directory</p>
             <a href="<?= APP_URL ?>/admin/users" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">

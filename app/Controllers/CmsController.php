@@ -75,4 +75,51 @@ class CmsController extends Controller {
         }
         return false;
     }
+
+    public function trackVisitor() {
+        // This is a public endpoint
+        $db = Database::getInstance()->getConnection();
+        $ip = $_SERVER['REMOTE_ADDR'];
+        $ua = $_SERVER['HTTP_USER_AGENT'];
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        $url = $_POST['url'] ?? '';
+        $userId = $_SESSION['user_id'] ?? null;
+        $action = $_POST['action'] ?? 'visit';
+
+        if ($action === 'scroll') {
+            $stmt = $db->prepare("UPDATE visitor_logs SET has_scrolled = 1 WHERE ip_address = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR) ORDER BY id DESC LIMIT 1");
+            $stmt->execute([$ip]);
+            echo json_encode(['status' => 'success']);
+            return;
+        }
+
+        // Prevent spam logs for same session in last 30 mins
+        $check = $db->prepare("SELECT id FROM visitor_logs WHERE ip_address = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)");
+        $check->execute([$ip]);
+        if ($check->fetch()) {
+            echo json_encode(['status' => 'already_tracked']);
+            return;
+        }
+
+        // Try to get location
+        $location = null;
+        try {
+            $response = @file_get_contents("http://ip-api.com/json/{$ip}");
+            if ($response) {
+                $data = json_decode($response, true);
+                if ($data && $data['status'] === 'success') {
+                    $location = json_encode([
+                        'city' => $data['city'] ?? 'Unknown',
+                        'country' => $data['country'] ?? 'Unknown',
+                        'region' => $data['regionName'] ?? 'Unknown'
+                    ]);
+                }
+            }
+        } catch (Exception $e) {}
+
+        $stmt = $db->prepare("INSERT INTO visitor_logs (ip_address, user_agent, location_data, user_id, referer, page_url) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$ip, $ua, $location, $userId, $referer, $url]);
+
+        echo json_encode(['status' => 'logged']);
+    }
 }

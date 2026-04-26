@@ -53,6 +53,7 @@ $router->add('admin/cms', 'CmsController', 'index');
 $router->add('staff/cms', 'CmsController', 'index');
 $router->add('cms/update-page', 'CmsController', 'updatePage');
 $router->add('cms/update-settings', 'CmsController', 'updateSettings');
+$router->add('api/track-visitor', 'CmsController', 'trackVisitor');
 
 $router->add('staff/dashboard', 'StaffController', 'dashboard');
 $router->add('staff/pending', 'StaffController', 'pending');
@@ -75,6 +76,7 @@ $router->add('admin/properties', 'AdminController', 'properties');
 $router->add('admin/export-properties', 'AdminController', 'exportProperties');
 $router->add('admin/verifications', 'AdminController', 'verifications');
 $router->add('admin/transactions', 'AdminController', 'transactions');
+$router->add('admin/visitors', 'AdminController', 'visitors');
 $router->add('admin/requests', 'AdminController', 'requests');
 $router->add('admin/updateRequestStatus', 'AdminController', 'updateRequestStatus');
 $router->add('admin/disputes', 'AdminController', 'disputes');

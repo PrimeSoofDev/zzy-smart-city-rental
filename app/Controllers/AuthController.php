@@ -11,8 +11,15 @@ class AuthController extends Controller {
             ];
 
             if ($userModel->create($data)) {
-                $userId = Database::getInstance()->getConnection()->lastInsertId();
+                $db = Database::getInstance()->getConnection();
+                $userId = $db->lastInsertId();
                 $userModel->assignRole($userId, $data['role']);
+
+                // Tag visitor as signup
+                $ip = $_SERVER['REMOTE_ADDR'];
+                $db->prepare("UPDATE visitor_logs SET is_new_signup = 1, user_id = ? WHERE ip_address = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR) ORDER BY id DESC LIMIT 1")
+                   ->execute([$userId, $ip]);
+
                 $this->redirect('auth/login');
             }
         }
@@ -58,7 +65,6 @@ class AuthController extends Controller {
         }
         $this->view('auth/verify_otp');
     }
-
     public function verifyOtpSubmit() {
         if (!isset($_SESSION['temp_user_id'])) {
             $this->jsonResponse(['status' => 'error', 'message' => 'Session expired'], 401);
@@ -86,6 +92,11 @@ class AuthController extends Controller {
             $db = Database::getInstance()->getConnection();
             $stmt = $db->prepare("UPDATE users SET status = 'verified' WHERE id = ?");
             $stmt->execute([$userId]);
+
+            // Tag visitor as verified on first visit
+            $ip = $_SERVER['REMOTE_ADDR'];
+            $db->prepare("UPDATE visitor_logs SET is_first_visit_verified = 1 WHERE ip_address = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR) ORDER BY id DESC LIMIT 1")
+               ->execute([$ip]);
 
             // Log them in
             $userModel = new User();

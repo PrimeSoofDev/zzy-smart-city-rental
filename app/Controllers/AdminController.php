@@ -889,7 +889,6 @@ class AdminController extends Controller {
                 $db->prepare("UPDATE rental_requests SET status = 'cancelled' WHERE id = ?")->execute([$requestId]);
             }
 
-            // Note: partial split logic would be handled by payment service in production.
             $db->commit();
             $_SESSION['success'] = "Dispute resolved successfully.";
         } catch (Exception $e) {
@@ -898,5 +897,48 @@ class AdminController extends Controller {
         }
 
         $this->redirect('admin/disputes');
+    }
+
+    public function visitors() {
+        RbacMiddleware::check(['Admin']);
+        $db = Database::getInstance()->getConnection();
+
+        // General Stats
+        $totalVisits = $db->query("SELECT COUNT(*) FROM visitor_logs")->fetchColumn();
+        $scrolledVisits = $db->query("SELECT COUNT(*) FROM visitor_logs WHERE has_scrolled = 1")->fetchColumn();
+        $interactionRate = $totalVisits > 0 ? round(($scrolledVisits / $totalVisits) * 100, 1) : 0;
+        
+        $newSignups = $db->query("SELECT COUNT(*) FROM visitor_logs WHERE is_new_signup = 1")->fetchColumn();
+        $verifiedFirstVisit = $db->query("SELECT COUNT(*) FROM visitor_logs WHERE is_first_visit_verified = 1")->fetchColumn();
+
+        // Location Data (grouped by city/country from JSON)
+        $locations = $db->query("
+            SELECT JSON_UNQUOTE(JSON_EXTRACT(location_data, '$.city')) as city, COUNT(*) as count 
+            FROM visitor_logs 
+            WHERE location_data IS NOT NULL 
+            GROUP BY city 
+            ORDER BY count DESC 
+            LIMIT 10
+        ")->fetchAll(PDO::FETCH_ASSOC);
+
+        // Recent Activity
+        $recentActivity = $db->query("
+            SELECT v.*, u.username 
+            FROM visitor_logs v 
+            LEFT JOIN users u ON v.user_id = u.id 
+            ORDER BY v.id DESC 
+            LIMIT 50
+        ")->fetchAll(PDO::FETCH_ASSOC);
+
+        $this->renderAdminView('visitors', [
+            'stats' => [
+                'totalVisits' => $totalVisits,
+                'interactionRate' => $interactionRate,
+                'newSignups' => $newSignups,
+                'verifiedFirstVisit' => $verifiedFirstVisit
+            ],
+            'locations' => $locations,
+            'activity' => $recentActivity
+        ]);
     }
 }

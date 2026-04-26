@@ -49,17 +49,43 @@
     </footer>
 
     <script>
+        // Scroll Header Logic
         window.addEventListener('scroll', function() {
             const header = document.getElementById('mainHeader');
-            const inner = header.querySelector('div');
-            if (window.scrollY > 20) {
-                header.classList.add('nav-scrolled');
-                inner.classList.replace('h-20', 'h-16');
-            } else {
-                header.classList.remove('nav-scrolled');
-                inner.classList.replace('h-16', 'h-20');
+            if (header) {
+                const inner = header.querySelector('div');
+                if (window.scrollY > 20) {
+                    header.classList.add('nav-scrolled');
+                    if(inner) inner.classList.replace('h-20', 'h-16');
+                } else {
+                    header.classList.remove('nav-scrolled');
+                    if(inner) inner.classList.replace('h-16', 'h-20');
+                }
             }
         });
+
+        // Visitor Tracking Logic
+        (function() {
+            const track = (action = 'visit') => {
+                fetch('<?= APP_URL ?>/api/track-visitor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `url=${encodeURIComponent(window.location.href)}&action=${action}`
+                });
+            };
+
+            // Track initial visit
+            track('visit');
+
+            // Track scroll once
+            let scrolled = false;
+            window.addEventListener('scroll', () => {
+                if (!scrolled && window.scrollY > 500) {
+                    scrolled = true;
+                    track('scroll');
+                }
+            }, { passive: true });
+        })();
     </script>
 </body>
 </html>
