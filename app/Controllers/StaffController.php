@@ -228,4 +228,114 @@ class StaffController extends Controller {
             'filter'  => $filter,
         ]);
     }
+
+    // ─── Escrow Management ──────────────────────────────────────────────────
+    public function escrowPayments() {
+        $this->requireStaff();
+        $db = Database::getInstance()->getConnection();
+
+        $stmt = $db->prepare("
+            SELECT t.*, p.title AS property_title, 
+                   tu.username AS tenant_name,
+                   lu.username AS landlord_name, lp.bank_name, lp.account_number
+            FROM transactions t
+            JOIN rental_requests rr ON t.request_id = rr.id
+            JOIN properties p ON rr.property_id = p.id
+            JOIN users tu ON t.user_id = tu.id
+            JOIN users lu ON p.landlord_id = lu.id
+            JOIN landlord_profiles lp ON lu.id = lp.user_id
+            WHERE t.status = 'escrow_hold'
+            ORDER BY t.created_at DESC
+        ");
+        $stmt->execute();
+        $transactions = $stmt->fetchAll();
+
+        $this->renderStaffView('escrow_list', ['transactions' => $transactions]);
+    }
+
+    public function releaseFunds() {
+        $this->requireStaff();
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') $this->redirect('staff/escrow');
+
+        $transactionId = $_POST['transaction_id'] ?? null;
+        if (!$transactionId) $this->redirect('staff/escrow');
+
+        $db = Database::getInstance()->getConnection();
+        $db->beginTransaction();
+
+        try {
+            // Update transaction status
+            $stmt = $db->prepare("UPDATE transactions SET status = 'released', payout_status = 'paid' WHERE id = ?");
+            $stmt->execute([$transactionId]);
+
+            // Get info for notifications
+            $infoStmt = $db->prepare("
+                SELECT t.user_id AS tenant_id, p.landlord_id, p.title 
+                FROM transactions t 
+                JOIN rental_requests rr ON t.request_id = rr.id 
+                JOIN properties p ON rr.property_id = p.id 
+                WHERE t.id = ?
+            ");
+            $infoStmt->execute([$transactionId]);
+            $info = $infoStmt->fetch();
+
+            if ($info) {
+                Notification::send($info['landlord_id'], "Funds Released! Rent for '{$info['title']}' has been released to your account.");
+                Notification::send($info['tenant_id'], "Move-in Confirmed! Funds for '{$info['title']}' have been released to the landlord.");
+            }
+
+            $db->commit();
+            $_SESSION['success'] = "Funds released successfully. Landlord has been notified.";
+        } catch (Exception $e) {
+            $db->rollBack();
+            $_SESSION['error'] = "Error releasing funds: " . $e->getMessage();
+        }
+
+        $this->redirect('staff/escrow');
+    }
+
+    public function refundFunds() {
+        $this->requireStaff();
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') $this->redirect('staff/escrow');
+
+        $transactionId = $_POST['transaction_id'] ?? null;
+        if (!$transactionId) $this->redirect('staff/escrow');
+
+        $db = Database::getInstance()->getConnection();
+        $db->beginTransaction();
+
+        try {
+            // Update transaction status
+            $stmt = $db->prepare("UPDATE transactions SET status = 'refunded' WHERE id = ?");
+            $stmt->execute([$transactionId]);
+
+            // Cancel rental request
+            $reqStmt = $db->prepare("UPDATE rental_requests SET status = 'cancelled' WHERE id = (SELECT request_id FROM transactions WHERE id = ?)");
+            $reqStmt->execute([$transactionId]);
+
+            // Get info for notifications
+            $infoStmt = $db->prepare("
+                SELECT t.user_id AS tenant_id, p.landlord_id, p.title 
+                FROM transactions t 
+                JOIN rental_requests rr ON t.request_id = rr.id 
+                JOIN properties p ON rr.property_id = p.id 
+                WHERE t.id = ?
+            ");
+            $infoStmt->execute([$transactionId]);
+            $info = $infoStmt->fetch();
+
+            if ($info) {
+                Notification::send($info['tenant_id'], "Funds Refunded! Your payment for '{$info['title']}' has been refunded.");
+                Notification::send($info['landlord_id'], "Booking Cancelled! The tenant payment for '{$info['title']}' has been refunded due to a dispute or cancellation.");
+            }
+
+            $db->commit();
+            $_SESSION['success'] = "Funds refunded successfully. Tenant has been notified.";
+        } catch (Exception $e) {
+            $db->rollBack();
+            $_SESSION['error'] = "Error refunding funds: " . $e->getMessage();
+        }
+
+        $this->redirect('staff/escrow');
+    }
 }

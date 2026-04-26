@@ -66,85 +66,38 @@ $logoUrl = SiteSetting::get('logo_url');
         </div>
 
         <nav class="p-4 space-y-2">
-            <p class="text-xs font-semibold text-slate-500 uppercase px-4 mb-2 tracking-wider sidebar-section-title">Main</p>
-            <a href="<?= APP_URL ?>/admin/dashboard" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (basename($_SERVER['PHP_SELF']) == 'dashboard.php' || $_SERVER['REQUEST_URI'] == '/zzy_rental/admin/dashboard') ? 'bg-blue-600 text-white shadow-md' : '' ?>">
-                <i class="fas fa-chart-pie w-5"></i> <span class="sidebar-text">Dashboard</span>
+            <p class="text-[10px] font-black text-slate-600 uppercase px-6 mb-4 mt-4 tracking-[0.2em] sidebar-section-title">Core</p>
+            <a href="<?= APP_URL ?>/admin/dashboard" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'admin/dashboard') !== false) ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : '' ?>">
+                <i class="fas fa-chart-pie w-5"></i> <span class="sidebar-text">Command Center</span>
             </a>
 
-            <p class="text-xs font-semibold text-slate-500 uppercase px-4 mt-6 mb-2 tracking-wider sidebar-section-title">Users</p>
+            <p class="text-[10px] font-black text-slate-600 uppercase px-6 mb-4 mt-8 tracking-[0.2em] sidebar-section-title">Staff Management</p>
             <div class="space-y-1">
-                <a href="<?= APP_URL ?>/admin/users" class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg transition-all hover:bg-slate-800 hover:text-white">
-                    <i class="fas fa-users w-5"></i> <span class="sidebar-text">All Users</span>
+                <a href="<?= APP_URL ?>/admin/add-user?role=Staff" class="sidebar-item flex items-center gap-3 px-6 py-2 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
+                    <i class="fas fa-user-shield w-5 text-blue-400"></i> <span class="sidebar-text">Onboard Staff</span>
                 </a>
-
-                <!-- Dropdown for Adding Staff/Lawyer -->
-                <div class="relative group">
-                    <button class="sidebar-item w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all hover:bg-slate-800 hover:text-white text-left">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-user-plus w-5 text-blue-400"></i> <span class="sidebar-text">Add Staff</span>
-                        </div>
-                        <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180 sidebar-text"></i>
-                    </button>
-                    <div class="absolute left-0 w-full bg-slate-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 translate-y-2 group-hover:translate-y-0 z-50 border border-slate-700">
-                        <div class="p-2 space-y-1">
-                            <a class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all hover:bg-blue-600 hover:text-white text-slate-400">
-                                <i class="fas fa-user-shield w-4"></i> <span class="sidebar-text">Add Staff Member</span>
-                            </a>
-                            <a href="<?= APP_URL ?>/admin/add-user?role=Lawyer" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all hover:bg-blue-600 hover:text-white text-slate-400">
-                                <i class="fas fa-gavel w-4"></i> <span class="sidebar-text">Add Legal Representative</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pl-4 space-y-1 mt-2 border-l border-slate-800 ml-6">
-                    <a class="sidebar-item flex items-center gap-3 px-4 py-2 rounded-lg transition-all hover:bg-slate-800 hover:text-white text-sm">
-                        <i class="fas fa-users w-4"></i> <span class="sidebar-text">All Users</span>
-                    </a>
-                </div>
+                <a href="<?= APP_URL ?>/admin/add-user?role=Lawyer" class="sidebar-item flex items-center gap-3 px-6 py-2 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
+                    <i class="fas fa-gavel w-5 text-indigo-400"></i> <span class="sidebar-text">Add Legal Rep</span>
+                </a>
             </div>
 
-            <p class="text-xs font-semibold text-slate-500 uppercase px-4 mt-6 mb-2 tracking-wider sidebar-section-title">Verifications</p>
-            <div class="relative group">
-                <button class="sidebar-item w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all hover:bg-slate-800 hover:text-white text-left">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-shield-check w-5 text-green-400"></i> <span class="sidebar-text">Verification</span>
-                    </div>
-                    <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180"></i>
-                </button>
-                <div class="absolute left-0 w-full bg-slate-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 translate-y-2 group-hover:translate-y-0 z-50 border border-slate-700">
-                    <div class="p-2 space-y-1">
-                        <a href="<?= APP_URL ?>/admin/users?role=Tenant" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all hover:bg-blue-600 hover:text-white text-slate-400">
-                            <i class="fas fa-user-tag w-4"></i> <span class="sidebar-text">Approve Tenants</span>
-                        </a>
-                        <a href="<?= APP_URL ?>/admin/users?role=Landlord" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all hover:bg-blue-600 hover:text-white text-slate-400">
-                            <i class="fas fa-house-user w-4"></i> <span class="sidebar-text">Approve Landlords</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <a class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
-                <i class="fas fa-list w-5"></i> <span class="sidebar-text">All Properties</span>
+            <p class="text-[10px] font-black text-slate-600 uppercase px-6 mb-4 mt-8 tracking-[0.2em] sidebar-section-title">Operations</p>
+            <a href="<?= APP_URL ?>/admin/properties?status=pending" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'status=pending') !== false) ? 'bg-amber-500 text-slate-900 shadow-lg' : '' ?>">
+                <i class="fas fa-clock w-5 text-amber-400"></i> <span class="sidebar-text">Approvals</span>
             </a>
-            <a href="<?= APP_URL ?>/admin/properties?status=pending" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
-                <i class="fas fa-clock w-5"></i> <span class="sidebar-text">Pending Approval</span>
+            <a href="<?= APP_URL ?>/admin/transactions" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fas fa-vault w-5 text-emerald-400"></i> <span class="sidebar-text">Escrow & Payouts</span>
             </a>
-            <a href="<?= APP_URL ?>/admin/properties?status=approved" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
-                <i class="fas fa-check-circle w-5"></i> <span class="sidebar-text">Verified</span>
+            <a href="<?= APP_URL ?>/admin/disputes" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fas fa-balance-scale w-5 text-red-400"></i> <span class="sidebar-text">Dispute Center</span>
             </a>
 
-            <p class="text-xs font-semibold text-slate-500 uppercase px-4 mt-6 mb-2 tracking-wider sidebar-section-title">Operations</p>
-            <a href="<?= APP_URL ?>/admin/requests" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
-                <i class="fas fa-exchange-alt w-5"></i> <span class="sidebar-text">Rental Requests</span>
+            <p class="text-[10px] font-black text-slate-600 uppercase px-6 mb-4 mt-8 tracking-[0.2em] sidebar-section-title">Directory</p>
+            <a href="<?= APP_URL ?>/admin/users" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fas fa-users w-5"></i> <span class="sidebar-text">User Base</span>
             </a>
-            <a href="<?= APP_URL ?>/admin/transactions" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
-                <i class="fas fa-vault w-5"></i> <span class="sidebar-text">Escrow & Payments</span>
-            </a>
-            <a href="<?= APP_URL ?>/admin/agreements" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
-                <i class="fas fa-file-signature w-5"></i> <span class="sidebar-text">Legal Agreements</span>
-            </a>
-            <a href="<?= APP_URL ?>/admin/disputes" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
-                <i class="fas fa-balance-scale w-5"></i> <span class="sidebar-text">Disputes</span>
+            <a href="<?= APP_URL ?>/admin/properties" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fas fa-house-user w-5"></i> <span class="sidebar-text">Real Estate</span>
             </a>
 
             <p class="text-xs font-semibold text-slate-500 uppercase px-4 mt-6 mb-2 tracking-wider sidebar-section-title">System</p>
@@ -173,23 +126,20 @@ $logoUrl = SiteSetting::get('logo_url');
                     <span class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><?= $unreadMsgs ?></span>
                 <?php endif; ?>
             </a>
-            <a href="<?= APP_URL ?>/admin/logs" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
-                <i class="fas fa-history w-5"></i> <span>Audit Logs</span>
+            <p class="text-[10px] font-black text-slate-600 uppercase px-6 mb-4 mt-8 tracking-[0.2em] sidebar-section-title">System</p>
+            <a href="<?= APP_URL ?>/admin/settings" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fas fa-cog w-5 text-slate-400"></i> <span class="sidebar-text">Preferences</span>
             </a>
-            <a href="<?= APP_URL ?>/admin/settings" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
-                <i class="fas fa-cog w-5"></i> <span class="sidebar-text">Settings</span>
+            <a href="<?= APP_URL ?>/admin/cms" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'admin/cms') !== false) ? 'bg-blue-600 text-white shadow-md' : '' ?>">
+                <i class="fas fa-desktop w-5 text-slate-400"></i> <span class="sidebar-text">Site Editor</span>
             </a>
-            <a href="<?= APP_URL ?>/admin/cms" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'admin/cms') !== false) ? 'bg-blue-600 text-white shadow-md' : '' ?>">
-                <i class="fas fa-desktop w-5"></i> <span class="sidebar-text">Guest Page Editor</span>
+            <a href="<?= APP_URL ?>/admin/logs" class="sidebar-item flex items-center gap-3 px-6 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white">
+                <i class="fas fa-history w-5 text-slate-400"></i> <span class="sidebar-text">Audit Trail</span>
             </a>
 
-            <div class="pt-6 mt-6 border-t border-slate-800 space-y-2">
-                <button id="desktopCollapse" class="hidden lg:flex w-full items-center gap-3 px-4 py-3 rounded-xl text-slate-400 transition-all hover:bg-slate-800 hover:text-white">
-                    <i class="fas fa-indent w-5" id="collapseIcon"></i> <span class="sidebar-text">Collapse Sidebar</span>
-                </button>
-
-                <a href="<?= APP_URL ?>/auth/logout" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 transition-all hover:bg-red-900/20 hover:text-red-300">
-                    <i class="fas fa-sign-out-alt w-5"></i> <span class="sidebar-text">Logout</span>
+            <div class="pt-8 mt-8 border-t border-slate-800">
+                <a href="<?= APP_URL ?>/auth/logout" class="sidebar-item flex items-center gap-3 px-6 py-4 rounded-xl text-red-400 transition-all hover:bg-red-900/20 hover:text-red-300 font-bold">
+                    <i class="fas fa-power-off w-5"></i> <span class="sidebar-text">End Session</span>
                 </a>
             </div>
         </nav>

@@ -1,92 +1,169 @@
-<div class="min-h-screen bg-gray-50 py-12 px-6">
-    <div class="max-w-5xl mx-auto">
-        <div class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Add New Property</h1>
-                <p class="text-gray-500">List your property on the marketplace</p>
-            </div>
-            <a href="<?= APP_URL ?>/landlord/dashboard" class="text-sm font-semibold text-gray-500 hover:text-gray-800 transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
-            </a>
+<div class="max-w-6xl mx-auto px-4 py-12">
+    <!-- Header -->
+    <div class="flex justify-between items-end mb-12">
+        <div>
+            <h1 class="text-4xl font-black text-slate-900 tracking-tight mb-2">List Your Property</h1>
+            <p class="text-slate-500 font-medium">Reach thousands of verified tenants in minutes.</p>
         </div>
+        <a href="<?= APP_URL ?>/landlord/dashboard" class="group flex items-center gap-2 text-slate-400 hover:text-slate-900 font-bold transition-all">
+            <i class="fas fa-long-arrow-alt-left group-hover:-translate-x-1 transition-transform"></i>
+            <span>Back to Dashboard</span>
+        </a>
+    </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Form Side -->
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                    <form action="<?= APP_URL ?>/landlord/save-property" method="POST" enctype="multipart/form-data" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Property Title</label>
-                                <input type="text" name="title" required placeholder="e.g. Luxury 3-Bed Flat in Lekki" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
-                                <textarea name="description" required rows="4" placeholder="Describe the property, amenities, and rules..." class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
-                            </div>
+    <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200 border border-slate-100 overflow-hidden">
+        <div class="flex flex-col lg:flex-row">
+            <!-- Sidebar / Guide -->
+            <div class="lg:w-1/4 bg-slate-900 p-10 text-white">
+                <div class="sticky top-10">
+                    <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-8 shadow-lg shadow-blue-900/50">
+                        <i class="fas fa-home text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black tracking-tight mb-6 leading-tight text-white">Listing Guide</h2>
+                    
+                    <div class="space-y-8">
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs font-black text-blue-400 border border-slate-700 shrink-0">1</div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Price (per Month)</label>
-                                <div class="relative">
-                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₦</span>
-                                    <input type="number" name="price" step="0.01" required class="w-full pl-8 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                                </div>
+                                <h4 class="font-bold text-sm mb-1">Detailed Info</h4>
+                                <p class="text-[10px] text-slate-400 leading-relaxed">Accurate descriptions help tenants make faster decisions.</p>
                             </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs font-black text-blue-400 border border-slate-700 shrink-0">2</div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Property Type</label>
-                                <select name="property_type" class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                                    <option value="apartment">Apartment</option>
-                                    <option value="house">House</option>
-                                    <option value="commercial">Commercial</option>
-                                    <option value="land">Land</option>
-                                </select>
+                                <h4 class="font-bold text-sm mb-1">Clear Pricing</h4>
+                                <p class="text-[10px] text-slate-400 leading-relaxed">Set a competitive monthly rent to attract more requests.</p>
                             </div>
                         </div>
-
-                        <!-- Map Integration Area -->
-                        <div class="space-y-3">
-                            <label class="block text-sm font-semibold text-gray-700">Precise Location (Click on Map)</label>
-                            <div id="map" class="w-full h-80 rounded-2xl border-2 border-gray-200 shadow-inner bg-gray-100 overflow-hidden">
-                                <!-- Leaflet Map injected here -->
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="space-y-1">
-                                    <label class="text-[10px] font-bold uppercase text-gray-400">Address</label>
-                                    <input type="text" id="address" name="address" readonly class="w-full px-4 py-2 bg-gray-50 border rounded-lg text-sm italic outline-none">
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-[10px] font-bold uppercase text-gray-400">Latitude</label>
-                                    <input type="text" id="lat" name="latitude" readonly class="w-full px-4 py-2 bg-gray-50 border rounded-lg text-sm outline-none">
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-[10px] font-bold uppercase text-gray-400">Longitude</label>
-                                    <input type="text" id="lng" name="longitude" readonly class="w-full px-4 py-2 bg-gray-50 border rounded-lg text-sm outline-none">
-                                </div>
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs font-black text-blue-400 border border-slate-700 shrink-0">3</div>
+                            <div>
+                                <h4 class="font-bold text-sm mb-1">High Quality Photos</h4>
+                                <p class="text-[10px] text-slate-400 leading-relaxed">Properties with 5+ photos get 80% more engagement.</p>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="pt-6">
-                            <button type="submit" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
-                                List Property Now
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Image Upload Side -->
-            <div class="space-y-6">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-gray-800 mb-4">Property Photos</h3>
-                    <div class="space-y-4">
-                        <div class="relative border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-blue-400 transition-all cursor-pointer bg-gray-50">
-                            <input type="file" name="images[]" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewImages(this)">
-                            <i class="fas fa-images text-gray-400 text-3xl mb-2"></i>
-                            <p class="text-sm text-gray-500">Upload high-quality photos</p>
-                            <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB each</p>
-                        </div>
-                        <div id="image-preview" class="grid grid-cols-3 gap-2"></div>
+                    <div class="mt-12 p-6 bg-slate-800/50 rounded-2xl border border-slate-700/50">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Pro Tip</p>
+                        <p class="text-xs text-slate-300 italic leading-relaxed">"Be sure to mark the exact location on the map. Verified pins build trust with tenants."</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Main Form Content -->
+            <div class="lg:w-3/4 p-8 md:p-16">
+                <form action="<?= APP_URL ?>/landlord/save-property" method="POST" enctype="multipart/form-data" class="space-y-12">
+                    
+                    <!-- Basic Information Section -->
+                    <section>
+                        <div class="flex items-center gap-3 mb-8">
+                            <div class="w-2 h-8 bg-blue-600 rounded-full"></div>
+                            <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight">Basic Information</h3>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="md:col-span-2 group">
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 transition-colors group-focus-within:text-blue-600">Property Title</label>
+                                <input type="text" name="title" required placeholder="e.g. Modern 3-Bedroom Apartment with Ocean View" 
+                                       class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-slate-900 font-bold outline-none focus:border-blue-600 focus:bg-white transition-all">
+                            </div>
+                            
+                            <div class="md:col-span-2 group">
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 transition-colors group-focus-within:text-blue-600">Detailed Description</label>
+                                <textarea name="description" required rows="4" placeholder="Mention amenities like WiFi, security, power supply, and neighborhood highlights..." 
+                                          class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-slate-900 font-bold outline-none focus:border-blue-600 focus:bg-white transition-all"></textarea>
+                            </div>
+
+                            <div class="group">
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 transition-colors group-focus-within:text-blue-600">Monthly Rent (₦)</label>
+                                <div class="relative">
+                                    <span class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₦</span>
+                                    <input type="number" name="price" step="0.01" required placeholder="0.00" 
+                                           class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl pl-12 pr-6 py-4 text-slate-900 font-bold outline-none focus:border-blue-600 focus:bg-white transition-all">
+                                </div>
+                            </div>
+
+                            <div class="group">
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 transition-colors group-focus-within:text-blue-600">Property Type</label>
+                                <div class="relative">
+                                    <select name="property_type" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-slate-900 font-bold outline-none focus:border-blue-600 focus:bg-white transition-all appearance-none">
+                                        <option value="apartment">Apartment / Flat</option>
+                                        <option value="house">Detached House</option>
+                                        <option value="commercial">Commercial Space</option>
+                                        <option value="land">Land / Plot</option>
+                                    </select>
+                                    <div class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Location Section -->
+                    <section>
+                        <div class="flex items-center gap-3 mb-8">
+                            <div class="w-2 h-8 bg-amber-500 rounded-full"></div>
+                            <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight">Location Details</h3>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div id="map" class="w-full h-96 rounded-3xl border-4 border-slate-100 shadow-inner bg-slate-50 overflow-hidden z-0"></div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                <div class="md:col-span-8 group">
+                                    <label class="block text-[9px] font-black uppercase text-slate-400 mb-1">Detected Address</label>
+                                    <input type="text" id="address" name="address" readonly 
+                                           class="w-full bg-transparent text-sm font-bold text-slate-700 outline-none placeholder:italic" 
+                                           placeholder="Click on the map to set address...">
+                                </div>
+                                <div class="md:col-span-2 group">
+                                    <label class="block text-[9px] font-black uppercase text-slate-400 mb-1">Latitude</label>
+                                    <input type="text" id="lat" name="latitude" readonly class="w-full bg-transparent text-[10px] font-mono font-bold text-blue-600 outline-none">
+                                </div>
+                                <div class="md:col-span-2 group">
+                                    <label class="block text-[9px] font-black uppercase text-slate-400 mb-1">Longitude</label>
+                                    <input type="text" id="lng" name="longitude" readonly class="w-full bg-transparent text-[10px] font-mono font-bold text-blue-600 outline-none">
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Media Upload Section -->
+                    <section>
+                        <div class="flex items-center gap-3 mb-8">
+                            <div class="w-2 h-8 bg-green-500 rounded-full"></div>
+                            <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight">Property Media</h3>
+                        </div>
+
+                        <div class="relative group">
+                            <div class="border-4 border-dashed border-slate-100 rounded-[2rem] p-12 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group">
+                                <input type="file" name="images[]" multiple accept="image/*" 
+                                       class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                                       onchange="previewImages(this)">
+                                <div class="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                                    <i class="fas fa-cloud-upload-alt text-3xl"></i>
+                                </div>
+                                <h4 class="text-lg font-black text-slate-900 mb-2">Upload Property Photos</h4>
+                                <p class="text-sm text-slate-500 font-medium max-w-xs mx-auto">Drag and drop images here or click to browse files.</p>
+                                <p class="text-[10px] text-slate-400 mt-4 uppercase font-black tracking-widest">PNG, JPG up to 5MB each</p>
+                            </div>
+                        </div>
+                        <div id="image-preview" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-8"></div>
+                    </section>
+
+                    <!-- Submit Button -->
+                    <div class="pt-12 border-t border-slate-100">
+                        <button type="submit" class="w-full bg-slate-900 text-white rounded-3xl py-6 px-10 font-black uppercase tracking-widest text-lg hover:bg-blue-600 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-2xl shadow-slate-200 flex items-center justify-center gap-4">
+                            <i class="fas fa-rocket text-xl"></i>
+                            Publish Property Listing
+                        </button>
+                        <p class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-6">By publishing, you agree to our terms of service and property verification guidelines.</p>
+                    </div>
+
+                </form>
             </div>
         </div>
     </div>
@@ -122,12 +199,21 @@
         const preview = document.getElementById('image-preview');
         preview.innerHTML = '';
         if (input.files) {
-            Array.from(input.files).forEach(file => {
+            Array.from(input.files).forEach((file, index) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const div = document.createElement('div');
-                    div.className = 'aspect-square rounded-lg bg-cover bg-center border border-gray-200';
+                    div.className = 'relative aspect-square rounded-2xl bg-cover bg-center border-2 border-slate-100 shadow-sm animate-fade-in group';
                     div.style.backgroundImage = `url(${e.target.result})`;
+                    
+                    // Add a label for primary image
+                    if(index === 0) {
+                        const badge = document.createElement('span');
+                        badge.className = 'absolute top-2 left-2 bg-blue-600 text-white text-[8px] font-black uppercase px-2 py-1 rounded-lg';
+                        badge.innerText = 'Main Photo';
+                        div.appendChild(badge);
+                    }
+
                     preview.appendChild(div);
                 };
                 reader.readAsDataURL(file);
@@ -135,3 +221,21 @@
         }
     }
 </script>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-out forwards;
+    }
+    .leaflet-container {
+        font-family: inherit;
+    }
+    .leaflet-bar a {
+        border-radius: 12px !important;
+        border: none !important;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+    }
+</style>

@@ -7,7 +7,7 @@ require_once '../app/Core/Request.php';
 require_once '../app/Middleware/RbacMiddleware.php';
 
 spl_autoload_register(function ($class) {
-    $paths = ['../app/Models/', '../app/Controllers/', '../app/Core/'];
+    $paths = ['../app/Models/', '../app/Controllers/', '../app/Core/', '../app/Services/'];
     foreach ($paths as $path) {
         $file = $path . $class . '.php';
         if (file_exists($file)) {
@@ -34,6 +34,7 @@ $router->add('tenant/verify-submit', 'TenantController', 'submitVerification');
 $router->add('tenant/request-rental', 'TenantController', 'requestRental');
 $router->add('tenant/property', 'TenantController', 'propertyDetails');
 $router->add('tenant/pay', 'TenantController', 'processPayment');
+$router->add('tenant/payment-verify', 'TenantController', 'verifyPayment');
 $router->add('landlord/dashboard', 'LandlordController', 'dashboard');
 $router->add('landlord/verify', 'LandlordController', 'verify');
 $router->add('landlord/verify-submit', 'LandlordController', 'submitVerification');
@@ -41,6 +42,8 @@ $router->add('landlord/add-property', 'LandlordController', 'addProperty');
 $router->add('landlord/save-property', 'LandlordController', 'saveProperty');
 $router->add('landlord/edit-property', 'LandlordController', 'editProperty');
 $router->add('landlord/update-property', 'LandlordController', 'updateProperty');
+$router->add('landlord/bank-details', 'LandlordController', 'bankDetails');
+$router->add('landlord/bank-save', 'LandlordController', 'saveBankDetails');
 $router->add('landlord/dashboard', 'LandlordController', 'dashboard');
 $router->add('profile/edit', 'ProfileController', 'edit');
 $router->add('profile/update', 'ProfileController', 'update');
@@ -55,6 +58,9 @@ $router->add('staff/pending', 'StaffController', 'pending');
 $router->add('staff/view-property', 'StaffController', 'viewProperty');
 $router->add('staff/submit-verification', 'StaffController', 'submitVerification');
 $router->add('staff/history', 'StaffController', 'history');
+$router->add('staff/escrow', 'StaffController', 'escrowPayments');
+$router->add('staff/escrow-release', 'StaffController', 'releaseFunds');
+$router->add('staff/escrow-refund', 'StaffController', 'refundFunds');
 $router->add('lawyer/dashboard', 'LawyerController', 'dashboard');
 $router->add('lawyer/requests', 'LawyerController', 'requests');
 $router->add('lawyer/draft-agreement', 'LawyerController', 'draftAgreement');

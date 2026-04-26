@@ -4,15 +4,17 @@ class Controller {
         extract($data);
         // Only use default layout if NOT in admin section and NOT a standalone guest page
         $isAdmin = strpos($_SERVER['REQUEST_URI'], '/admin/') !== false;
+        // Portals usually have 'landlord', 'tenant', 'staff', 'lawyer' etc. in the URL
+        $isPortal = preg_match('/(landlord|tenant|staff|lawyer|messages|notifications|profile)/i', $_SERVER['REQUEST_URI']);
         $guestViews = ['home/index', 'home/find_homes', 'home/how_it_works', 'home/pricing', 'home/support'];
         $isStandaloneGuest = in_array($view, $guestViews);
 
-        if (!$isAdmin && !$isStandaloneGuest) {
+        if (!$isAdmin && !$isPortal && !$isStandaloneGuest) {
             require_once "../views/layouts/header.php";
             require_once "../views/$view.php";
             require_once "../views/layouts/footer.php";
         } else {
-            // For admin views and standalone guest pages, load only the view file
+            // For portals and admin, we manually wrap layouts or they provide their own
             require_once "../views/$view.php";
         }
     }

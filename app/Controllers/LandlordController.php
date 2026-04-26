@@ -30,8 +30,30 @@ class LandlordController extends Controller {
         $properties->execute([$userId]);
         $myProperties = $properties->fetchAll();
 
+        // Check if bank details are set
+        $bankStmt = $db->prepare("SELECT subaccount_code FROM landlord_profiles WHERE user_id = ?");
+        $bankStmt->execute([$userId]);
+        $bankInfo = $bankStmt->fetch();
+
+        // Fetch pending payouts (escrow holds)
+        $payoutStmt = $db->prepare("
+            SELECT t.*, p.title as property_title, p.address as property_address, tu.username as tenant_name
+            FROM transactions t
+            JOIN rental_requests rr ON t.request_id = rr.id
+            JOIN properties p ON rr.property_id = p.id
+            JOIN users tu ON t.user_id = tu.id
+            WHERE p.landlord_id = ? AND t.status IN ('escrow_hold', 'released')
+            ORDER BY t.created_at DESC
+        ");
+        $payoutStmt->execute([$userId]);
+        $payoutItems = $payoutStmt->fetchAll();
+
         require_once "../views/layouts/landlord_layout_start.php";
-        $this->view('landlord/dashboard', ['properties' => $myProperties]);
+        $this->view('landlord/dashboard', [
+            'properties' => $myProperties,
+            'bankSetupRequired' => empty($bankInfo['subaccount_code']),
+            'payoutItems' => $payoutItems
+        ]);
         require_once "../views/layouts/landlord_layout_end.php";
     }
 
@@ -82,7 +104,9 @@ class LandlordController extends Controller {
 
     public function addProperty() {
         $this->checkVerification();
+        require_once "../views/layouts/landlord_layout_start.php";
         $this->view('landlord/add-property');
+        require_once "../views/layouts/landlord_layout_end.php";
     }
 
     public function saveProperty() {
@@ -221,6 +245,85 @@ class LandlordController extends Controller {
             if ($db->inTransaction()) $db->rollBack();
             $_SESSION['error'] = "Error updating property: " . $e->getMessage();
             $this->redirect('landlord/edit-property?id=' . $propertyId);
+        }
+    }
+
+    public function bankDetails() {
+        $this->checkVerification();
+        $db = Database::getInstance()->getConnection();
+        $userId = $_SESSION['user_id'];
+
+        // Get current profile
+        $stmt = $db->prepare("SELECT * FROM landlord_profiles WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $profile = $stmt->fetch();
+
+        // Get bank list from Paystack
+        $paymentService = new PaymentService();
+        $bankResponse = $paymentService->getBanks();
+        $banks = ($bankResponse['status']) ? $bankResponse['data'] : [];
+
+        require_once "../views/layouts/landlord_layout_start.php";
+        $this->view('landlord/bank_details', ['profile' => $profile, 'banks' => $banks]);
+        require_once "../views/layouts/landlord_layout_end.php";
+    }
+
+    public function saveBankDetails() {
+        $this->checkVerification();
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') $this->redirect('landlord/bank-details');
+
+        $userId = $_SESSION['user_id'];
+        $bankCode = $_POST['bank_code'];
+        $accountNumber = $_POST['account_number'];
+
+        $db = Database::getInstance()->getConnection();
+        $paymentService = new PaymentService();
+
+        try {
+            // Get profile
+            $stmt = $db->prepare("SELECT subaccount_code FROM landlord_profiles WHERE user_id = ?");
+            $stmt->execute([$userId]);
+            $profile = $stmt->fetch();
+
+            $businessName = $_SESSION['username'] . " Rental";
+            $bankList = $paymentService->getBanks();
+            $bankName = '';
+            foreach ($bankList['data'] as $b) {
+                if ($b['code'] == $bankCode) {
+                    $bankName = $b['name'];
+                    break;
+                }
+            }
+
+            $subaccountData = [
+                'business_name' => $businessName,
+                'settlement_bank' => $bankCode,
+                'account_number' => $accountNumber,
+                'percentage_charge' => PLATFORM_FEE_PERCENT
+            ];
+
+            if (empty($profile['subaccount_code'])) {
+                // Create new subaccount
+                $response = $paymentService->createSubaccount($subaccountData);
+                if (!$response['status']) throw new Exception("Paystack Error: " . $response['message']);
+                $subaccountCode = $response['data']['subaccount_code'];
+            } else {
+                // Update existing subaccount
+                $response = $paymentService->updateSubaccount($profile['subaccount_code'], $subaccountData);
+                if (!$response['status']) throw new Exception("Paystack Error: " . $response['message']);
+                $subaccountCode = $profile['subaccount_code'];
+            }
+
+            // Save to DB
+            $updateStmt = $db->prepare("UPDATE landlord_profiles SET subaccount_code = ?, bank_name = ?, account_number = ?, bank_code = ? WHERE user_id = ?");
+            $updateStmt->execute([$subaccountCode, $bankName, $accountNumber, $bankCode, $userId]);
+
+            $_SESSION['success'] = "Bank details updated and subaccount synchronized successfully.";
+            $this->redirect('landlord/bank-details');
+
+        } catch (Exception $e) {
+            $_SESSION['error'] = "Error: " . $e->getMessage();
+            $this->redirect('landlord/bank-details');
         }
     }
 }

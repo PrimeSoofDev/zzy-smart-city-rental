@@ -19,11 +19,29 @@ class TenantController extends Controller {
     public function dashboard() {
         $this->checkVerification();
         RbacMiddleware::check(['Tenant']);
+        $userId = $_SESSION['user_id'];
+        $db = Database::getInstance()->getConnection();
+
         $propModel = new Property();
         $properties = $propModel->getAllApproved();
 
+        // Fetch my escrow transactions
+        $escrowStmt = $db->prepare("
+            SELECT t.*, p.title as property_title, p.address as property_address, rr.status as request_status
+            FROM transactions t
+            JOIN rental_requests rr ON t.request_id = rr.id
+            JOIN properties p ON rr.property_id = p.id
+            WHERE t.user_id = ? AND t.status IN ('escrow_hold', 'released', 'refunded')
+            ORDER BY t.created_at DESC
+        ");
+        $escrowStmt->execute([$userId]);
+        $escrowItems = $escrowStmt->fetchAll();
+
         require_once "../views/layouts/tenant_layout_start.php";
-        $this->view('tenant/dashboard', ['properties' => $properties]);
+        $this->view('tenant/dashboard', [
+            'properties' => $properties,
+            'escrowItems' => $escrowItems
+        ]);
         require_once "../views/layouts/tenant_layout_end.php";
     }
 
@@ -148,55 +166,118 @@ class TenantController extends Controller {
         $db = Database::getInstance()->getConnection();
 
         try {
-            $db->beginTransaction();
-
-            // Get property details for notification and transaction
-            $pStmt = $db->prepare("SELECT title, price, landlord_id FROM properties WHERE id = ?");
-            $pStmt->execute([$propertyId]);
-            $property = $pStmt->fetch();
+            // Get property and landlord subaccount
+            $stmt = $db->prepare("SELECT p.title, p.price, p.landlord_id, lp.subaccount_code 
+                                 FROM properties p 
+                                 JOIN landlord_profiles lp ON p.landlord_id = lp.user_id 
+                                 WHERE p.id = ?");
+            $stmt->execute([$propertyId]);
+            $property = $stmt->fetch();
 
             if (!$property) throw new Exception("Property not found.");
+            if (empty($property['subaccount_code'])) throw new Exception("Landlord has not set up bank details yet.");
 
-            // 1. Create Rental Request as 'paid'
-            $stmt = $db->prepare("INSERT INTO rental_requests (tenant_id, property_id, status) VALUES (?, ?, 'paid')");
-            $stmt->execute([$tenantId, $propertyId]);
-            $requestId = $db->lastInsertId();
-
-            // Calculate Fees
+            // Calculate Total
             $basePrice = floatval($property['price']);
-            $platformFee = $basePrice * 0.20;
-            $legalFee = $basePrice * 0.10;
+            $platformFee = $basePrice * (PLATFORM_FEE_PERCENT / 100);
+            $legalFee = $basePrice * 0.10; // Keeping existing logic for legal fee if any
             $totalAmount = $basePrice + $platformFee + $legalFee;
 
-            // 2. Create Transaction record (Escrow Deposit)
-            $tStmt = $db->prepare("INSERT INTO transactions (request_id, user_id, amount, transaction_type, status) VALUES (?, ?, ?, 'escrow_deposit', 'completed')");
-            $tStmt->execute([$requestId, $tenantId, $totalAmount]);
+            // Generate unique reference
+            $reference = "ZZY-" . time() . "-" . $tenantId;
 
-            // 3. Notify Landlord
-            $tenantName = $_SESSION['username'] ?? 'A tenant';
-            $msg = "Payment Received! {$tenantName} has paid for your property '{$property['title']}'. Rental Request #{$requestId} is now in 'Paid' status. Please await legal agreement drafting.";
-            Notification::send($property['landlord_id'], $msg);
-
-            // 4. Notify Admin and Staff
-            $adminStaffQuery = $db->query("SELECT u.id FROM users u 
-                                          JOIN user_roles ur ON u.id = ur.user_id 
-                                          JOIN roles r ON ur.role_id = r.id 
-                                          WHERE r.role_name IN ('Admin', 'Staff')");
-            $adminStaffIds = $adminStaffQuery->fetchAll(PDO::FETCH_COLUMN);
+            // Initialize Paystack
+            $paymentService = new PaymentService();
+            $callbackUrl = APP_URL . "/tenant/payment-verify";
             
-            $adminMsg = "New Escrow Payment: {$tenantName} has paid ₦" . number_format($totalAmount, 2) . " for '{$property['title']}' (#{$requestId}). Please assign a lawyer if not already done.";
-            foreach ($adminStaffIds as $recipientId) {
-                Notification::send($recipientId, $adminMsg);
-            }
+            $response = $paymentService->initializeTransaction(
+                $_SESSION['email'] ?? 'tenant@example.com',
+                $totalAmount,
+                $reference,
+                $callbackUrl,
+                $property['subaccount_code']
+            );
 
-            $db->commit();
-            $_SESSION['success'] = "Payment successful! The funds are now held in escrow. A lawyer will be assigned to draft the rental agreement shortly.";
-            $this->redirect('tenant/dashboard');
+            if (!$response['status']) throw new Exception("Paystack Error: " . $response['message']);
+
+            // Create pending transaction record
+            $tStmt = $db->prepare("INSERT INTO transactions (user_id, amount, transaction_type, status, paystack_reference) 
+                                 VALUES (?, ?, 'escrow_deposit', 'pending', ?)");
+            $tStmt->execute([$tenantId, $totalAmount, $reference]);
+
+            // Store property ID in session to use after verification
+            $_SESSION['pending_booking'] = [
+                'property_id' => $propertyId,
+                'reference' => $reference,
+                'amount' => $totalAmount
+            ];
+
+            // Redirect to Paystack
+            header("Location: " . $response['data']['authorization_url']);
+            exit;
 
         } catch (Exception $e) {
-            if ($db->inTransaction()) $db->rollBack();
-            $_SESSION['error'] = "Payment failed: " . $e->getMessage();
+            $_SESSION['error'] = "Payment initialization failed: " . $e->getMessage();
             $this->redirect('tenant/property?id=' . $propertyId);
         }
+    }
+
+    public function verifyPayment() {
+        $this->checkVerification();
+        $reference = $_GET['reference'] ?? $_GET['trxref'] ?? null;
+        
+        if (!$reference) {
+            $_SESSION['error'] = "No transaction reference found.";
+            $this->redirect('tenant/dashboard');
+        }
+
+        $db = Database::getInstance()->getConnection();
+        $paymentService = new PaymentService();
+
+        try {
+            $response = $paymentService->verifyTransaction($reference);
+
+            if ($response['status'] && $response['data']['status'] === 'success') {
+                $db->beginTransaction();
+
+                // Update transaction status to escrow_hold
+                $stmt = $db->prepare("UPDATE transactions SET status = 'escrow_hold' WHERE paystack_reference = ?");
+                $stmt->execute([$reference]);
+
+                // Create Rental Request
+                $pending = $_SESSION['pending_booking'] ?? null;
+                if ($pending && $pending['reference'] === $reference) {
+                    $propertyId = $pending['property_id'];
+                    $tenantId = $_SESSION['user_id'];
+
+                    $rrStmt = $db->prepare("INSERT INTO rental_requests (tenant_id, property_id, status) VALUES (?, ?, 'paid')");
+                    $rrStmt->execute([$tenantId, $propertyId]);
+                    $requestId = $db->lastInsertId();
+
+                    // Update transaction with request_id
+                    $db->prepare("UPDATE transactions SET request_id = ? WHERE paystack_reference = ?")
+                       ->execute([$requestId, $reference]);
+
+                    // Notify Landlord
+                    $pStmt = $db->prepare("SELECT landlord_id, title FROM properties WHERE id = ?");
+                    $pStmt->execute([$propertyId]);
+                    $property = $pStmt->fetch();
+                    
+                    Notification::send($property['landlord_id'], "Payment Received! Funds are held in escrow for '{$property['title']}'. Rental Request #{$requestId}.");
+                    
+                    unset($_SESSION['pending_booking']);
+                }
+
+                $db->commit();
+                $_SESSION['success'] = "Payment successful! Funds are now secured in escrow.";
+            } else {
+                $_SESSION['error'] = "Payment verification failed: " . ($response['message'] ?? 'Unknown error');
+            }
+        } catch (Exception $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            $_SESSION['error'] = "Verification Error: " . $e->getMessage();
+        }
+
+        $this->redirect('tenant/dashboard');
     }
 }

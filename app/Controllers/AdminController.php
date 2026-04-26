@@ -15,6 +15,32 @@ class AdminController extends Controller {
         $totalProperties = $db->query("SELECT COUNT(*) FROM properties")->fetchColumn();
         $pendingVerifications = $db->query("SELECT COUNT(*) FROM properties WHERE status = 'pending_verification'")->fetchColumn();
 
+        // Analytical Data: Monthly Revenue (Platform Volume)
+        $revenueData = $db->query("
+            SELECT DATE_FORMAT(created_at, '%b %Y') as label, SUM(amount) as total 
+            FROM transactions 
+            WHERE status = 'completed' OR status = 'escrow_hold'
+            GROUP BY label 
+            ORDER BY created_at ASC 
+            LIMIT 6
+        ")->fetchAll();
+
+        // Analytical Data: Property Types
+        $propertyTypes = $db->query("
+            SELECT property_type as label, COUNT(*) as value 
+            FROM properties 
+            GROUP BY property_type
+        ")->fetchAll();
+
+        // Analytical Data: User Roles
+        $userRoles = $db->query("
+            SELECT r.role_name as label, COUNT(*) as value 
+            FROM users u 
+            JOIN user_roles ur ON u.id = ur.user_id 
+            JOIN roles r ON ur.role_id = r.id 
+            GROUP BY r.role_name
+        ")->fetchAll();
+
         $users = $db->query("
             SELECT u.id, u.username, u.email, u.status, r.role_name
             FROM users u
@@ -30,6 +56,11 @@ class AdminController extends Controller {
                 'totalUsers' => $totalUsers,
                 'totalProperties' => $totalProperties,
                 'pendingVerifications' => $pendingVerifications
+            ],
+            'analytics' => [
+                'revenue' => $revenueData,
+                'propertyTypes' => $propertyTypes,
+                'userRoles' => $userRoles
             ]
         ]);
         require_once "../views/layouts/admin_layout_end.php";

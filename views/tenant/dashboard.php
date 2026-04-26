@@ -1,5 +1,43 @@
 <h1 class="text-3xl font-bold mb-8">Find Your Next Home</h1>
 
+<?php if(!empty($escrowItems)): ?>
+    <div class="mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-shield-alt text-green-500"></i> My Secured Payments
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <?php foreach($escrowItems as $item): ?>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-green-50 text-green-600 p-3 rounded-2xl">
+                            <i class="fas fa-lock text-xl"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full 
+                            <?= $item['status'] == 'escrow_hold' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-blue-50 text-blue-600 border border-blue-100' ?>">
+                            <?= str_replace('_', ' ', $item['status']) ?>
+                        </span>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-1"><?= htmlspecialchars($item['property_title']) ?></h3>
+                    <p class="text-xs text-gray-500 mb-4 line-clamp-1"><?= htmlspecialchars($item['property_address']) ?></p>
+                    
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-50">
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Secured Amount</p>
+                            <p class="font-black text-gray-900">₦<?= number_format($item['amount'], 2) ?></p>
+                        </div>
+                        <?php if($item['status'] == 'escrow_hold'): ?>
+                            <div class="text-right">
+                                <span class="block text-[10px] font-black text-green-600 uppercase">Funds Secured</span>
+                                <span class="text-[9px] text-gray-400">Awaiting move-in</span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php endif; ?>
+
 <div class="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Search and Map Section -->
     <div class="lg:col-span-2 space-y-4">

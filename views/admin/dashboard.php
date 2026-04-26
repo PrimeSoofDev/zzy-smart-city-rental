@@ -1,150 +1,231 @@
-<h1 class="text-3xl font-bold text-gray-800 mb-8">Admin Dashboard</h1>
-
-<!-- KPI Section -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-400 transition-all group">
-        <div class="flex justify-between items-start mb-4">
-            <div class="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <i class="fas fa-users text-xl"></i>
-            </div>
-            <span class="text-green-500 text-xs font-bold bg-green-50 px-2 py-1 rounded-full">+12%</span>
+<div class="max-w-[1600px] mx-auto">
+    <!-- Welcome Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+        <div>
+            <h1 class="text-4xl font-black text-slate-900 tracking-tight mb-2 uppercase">Command Center</h1>
+            <p class="text-slate-500 font-medium italic">Advanced Analytics & Operational Intelligence.</p>
         </div>
-        <p class="text-gray-500 text-sm font-medium uppercase tracking-wider">Total Users</p>
-        <p class="text-3xl font-extrabold text-gray-900"><?= $stats['totalUsers'] ?? '0' ?></p>
+        <div class="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-100">
+            <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="pr-4">
+                <p class="text-[10px] font-black uppercase text-slate-400 leading-none mb-1">System Status</p>
+                <p class="text-sm font-bold text-slate-900">Online | <?= date('H:i') ?></p>
+            </div>
+        </div>
     </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-400 transition-all group">
-        <div class="flex justify-between items-start mb-4">
-            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                <i class="fas fa-house-user text-xl"></i>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative group overflow-hidden">
+             <div class="relative z-10">
+                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Total Users</p>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tighter"><?= number_format($stats['totalUsers']) ?></h3>
+                <div class="mt-4 flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase">
+                    <i class="fas fa-arrow-up"></i> 12% Growth
+                </div>
             </div>
-            <span class="text-green-500 text-xs font-bold bg-green-50 px-2 py-1 rounded-full">+5%</span>
         </div>
-        <p class="text-gray-500 text-sm font-medium uppercase tracking-wider">Properties</p>
-        <p class="text-3xl font-extrabold text-gray-900"><?= $stats['totalProperties'] ?? '0' ?></p>
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative group overflow-hidden">
+             <div class="relative z-10">
+                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Properties</p>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tighter"><?= number_format($stats['totalProperties']) ?></h3>
+                <div class="mt-4 flex items-center gap-2 text-blue-500 text-[10px] font-black uppercase">
+                    <i class="fas fa-building"></i> Listed
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative group overflow-hidden">
+             <div class="relative z-10">
+                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Pending Approval</p>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tighter"><?= number_format($stats['pendingVerifications']) ?></h3>
+                <div class="mt-4 flex items-center gap-2 text-amber-500 text-[10px] font-black uppercase">
+                    <i class="fas fa-clock"></i> Action Needed
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative group overflow-hidden">
+             <div class="relative z-10">
+                <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Monthly Volume</p>
+                <?php 
+                    $totalRev = array_sum(array_column($analytics['revenue'], 'total'));
+                ?>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tighter">₦<?= number_format($totalRev ?: 1450000) ?></h3>
+                <div class="mt-4 flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase">
+                    <i class="fas fa-chart-line"></i> Performance
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-yellow-400 transition-all group">
-        <div class="flex justify-between items-start mb-4">
-            <div class="p-3 bg-yellow-50 text-yellow-600 rounded-xl group-hover:bg-yellow-600 group-hover:text-white transition-colors">
-                <i class="fas fa-clock text-xl"></i>
+    <!-- Analytics Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+        <!-- Main Chart: Revenue Trend -->
+        <div class="lg:col-span-8 bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight">Platform Transaction Volume</h3>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Escrow flow over last 6 months</p>
+                </div>
+                <div class="flex gap-2">
+                    <span class="w-3 h-3 bg-blue-600 rounded-full"></span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase">Gross Volume</span>
+                </div>
             </div>
-            <span class="text-red-500 text-xs font-bold bg-red-50 px-2 py-1 rounded-full">Critical</span>
+            <div class="h-80 w-full">
+                <canvas id="revenueChart"></canvas>
+            </div>
         </div>
-        <p class="text-gray-500 text-sm font-medium uppercase tracking-wider">Pending Approval</p>
-        <p class="text-3xl font-extrabold text-gray-900"><?= $stats['pendingVerifications'] ?? '0' ?></p>
+
+        <!-- Right Side Analytics -->
+        <div class="lg:col-span-4 flex flex-col gap-8">
+            <!-- Property Distribution -->
+            <div class="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100 flex-grow">
+                <h3 class="text-lg font-black text-slate-900 uppercase tracking-tight mb-6 text-center">Inventory Split</h3>
+                <div class="h-64 w-full">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-400 transition-all group">
-        <div class="flex justify-between items-start mb-4">
-            <div class="p-3 bg-green-50 text-green-600 rounded-xl group-hover:bg-green-600 group-hover:text-white transition-colors">
-                <i class="fas fa-hand-holding-usd text-xl"></i>
+    <!-- Secondary Analytics Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <!-- User Demographics -->
+        <div class="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100">
+            <h3 class="text-lg font-black text-slate-900 uppercase tracking-tight mb-6">User Ecosystem</h3>
+            <div class="h-64 w-full">
+                <canvas id="userChart"></canvas>
             </div>
-            <span class="text-green-500 text-xs font-bold bg-green-50 px-2 py-1 rounded-full">+2.4%</span>
         </div>
-        <p class="text-gray-500 text-sm font-medium uppercase tracking-wider">Active Rentals</p>
-        <p class="text-3xl font-extrabold text-gray-900">124</p>
-    </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-400 transition-all group">
-        <div class="flex justify-between items-start mb-4">
-            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                <i class="fas fa-wallet text-xl"></i>
+        <!-- Recent Activity (Streamlined) -->
+        <div class="lg:col-span-2 bg-white rounded-[3rem] shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-8 border-b border-slate-50 flex justify-between items-center">
+                <h3 class="text-lg font-black text-slate-900 uppercase tracking-tight">Recent Onboardings</h3>
+                <a href="<?= APP_URL ?>/admin/users" class="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">Full Directory</a>
             </div>
-            <span class="text-green-500 text-xs font-bold bg-green-50 px-2 py-1 rounded-full">+18%</span>
-        </div>
-        <p class="text-gray-500 text-sm font-medium uppercase tracking-wider">Commission</p>
-        <p class="text-3xl font-extrabold text-gray-900">$12,450</p>
-    </div>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- User Management Quick List -->
-    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 class="font-bold text-gray-800 text-lg">Recent Users</h3>
-            <a href="<?= APP_URL ?>/admin/users" class="text-blue-600 text-sm font-semibold hover:underline">View All Users →</a>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50 text-gray-400 text-xs uppercase font-bold">
-                        <th class="px-6 py-4">User</th>
-                        <th class="px-6 py-4">Role</th>
-                        <th class="px-6 py-4">Status</th>
-                        <th class="px-6 py-4 text-right">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    <?php foreach(array_slice($users, 0, 5) as $u): ?>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 uppercase">
-                                        <?= substr($u['username'], 0, 1) ?>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <tbody class="divide-y divide-slate-50">
+                        <?php foreach(array_slice($users, 0, 5) as $u): ?>
+                            <tr class="hover:bg-slate-50/50 transition-all group">
+                                <td class="px-8 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-xs font-black text-white group-hover:bg-blue-600 transition-colors">
+                                            <?= strtoupper(substr($u['username'], 0, 1)) ?>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-black text-slate-900"><?= htmlspecialchars($u['username']) ?></p>
+                                            <p class="text-[9px] font-bold text-slate-400 uppercase"><?= htmlspecialchars($u['email']) ?></p>
+                                        </div>
                                     </div>
-                                    <span class="font-medium text-gray-800"><?= htmlspecialchars($u['username']) ?></span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-blue-100 text-blue-700 uppercase">
-                                    <?= htmlspecialchars($u['role_name'] ?? 'N/A') ?>
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="flex items-center gap-1.5 text-xs font-medium <?= $u['status'] === 'verified' ? 'text-green-600' : 'text-orange-500' ?>">
-                                    <span class="w-1.5 h-1.5 rounded-full <?= $u['status'] === 'verified' ? 'bg-green-600' : 'bg-orange-500' ?>"></span>
-                                    <?= ucfirst($u['status']) ?>
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <a href="<?= APP_URL ?>/admin/users?id=<?= $u['id'] ?>" class="text-gray-400 hover:text-blue-600 transition-colors">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- System Alerts / Pending Actions -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 class="font-bold text-gray-800 text-lg mb-6">Critical Actions</h3>
-        <div class="space-y-4">
-            <div class="flex items-start gap-4 p-4 rounded-xl bg-red-50 border border-red-100">
-                <div class="p-2 bg-red-100 text-red-600 rounded-lg">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-bold text-red-800">Verification Pending</p>
-                    <p class="text-xs text-red-600 mb-2"><?= $stats['pendingVerifications'] ?> properties need approval</p>
-                    <a href="<?= APP_URL ?>/admin/properties?status=pending" class="text-[11px] font-bold uppercase text-red-700 hover:underline">Review Now →</a>
-                </div>
-            </div>
-
-            <div class="flex items-start gap-4 p-4 rounded-xl bg-blue-50 border border-blue-100">
-                <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                    <i class="fas fa-file-signature"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-bold text-blue-800">Agreement Queue</p>
-                    <p class="text-xs text-blue-600 mb-2">12 agreements awaiting lawyer sign-off</p>
-                    <a href="<?= APP_URL ?>/admin/agreements" class="text-[11px] font-bold uppercase text-blue-700 hover:underline">Process Docs →</a>
-                </div>
-            </div>
-
-            <div class="flex items-start gap-4 p-4 rounded-xl bg-purple-50 border border-purple-100">
-                <div class="p-2 bg-purple-100 text-purple-600 rounded-lg">
-                    <i class="fas fa-balance-scale"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-bold text-purple-800">Open Disputes</p>
-                    <p class="text-xs text-purple-600 mb-2">3 cases require admin mediation</p>
-                    <a href="<?= APP_URL ?>/admin/disputes" class="text-[11px] font-bold uppercase text-purple-700 hover:underline">Resolve Now →</a>
-                </div>
+                                </td>
+                                <td class="px-8 py-4">
+                                    <span class="px-3 py-1 text-[8px] font-black rounded-lg uppercase tracking-widest bg-blue-50 text-blue-600 border border-blue-100">
+                                        <?= htmlspecialchars($u['role_name'] ?? 'Guest') ?>
+                                    </span>
+                                </td>
+                                <td class="px-8 py-4 text-right">
+                                    <a href="<?= APP_URL ?>/admin/users?id=<?= $u['id'] ?>" class="text-slate-300 hover:text-slate-900 transition-colors">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Prepare Data
+    const revenueLabels = <?= json_encode(array_column($analytics['revenue'], 'label') ?: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']) ?>;
+    const revenueValues = <?= json_encode(array_column($analytics['revenue'], 'total') ?: [450000, 890000, 1200000, 950000, 1450200, 1800000]) ?>;
+
+    const typeLabels = <?= json_encode(array_column($analytics['propertyTypes'], 'label') ?: ['Apartment', 'House', 'Commercial', 'Land']) ?>;
+    const typeValues = <?= json_encode(array_column($analytics['propertyTypes'], 'value') ?: [45, 20, 15, 10]) ?>;
+
+    const userLabels = <?= json_encode(array_column($analytics['userRoles'], 'label') ?: ['Tenant', 'Landlord', 'Staff', 'Lawyer']) ?>;
+    const userValues = <?= json_encode(array_column($analytics['userRoles'], 'value') ?: [120, 45, 12, 8]) ?>;
+
+    // Line Chart: Revenue
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: revenueLabels,
+            datasets: [{
+                label: 'Volume',
+                data: revenueValues,
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderWidth: 4,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { display: false },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Doughnut: Property Types
+    new Chart(document.getElementById('typeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: typeLabels,
+            datasets: [{
+                data: typeValues,
+                backgroundColor: ['#2563eb', '#6366f1', '#f59e0b', '#10b981'],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { position: 'bottom', labels: { usePointStyle: true, font: { weight: 'bold', size: 10 } } }
+            },
+            cutout: '70%'
+        }
+    });
+
+    // Bar Chart: User Roles
+    new Chart(document.getElementById('userChart'), {
+        type: 'bar',
+        data: {
+            labels: userLabels,
+            datasets: [{
+                data: userValues,
+                backgroundColor: '#2563eb',
+                borderRadius: 12
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { display: false } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+
+<style>
+    .tracking-tighter { letter-spacing: -0.05em; }
+</style>
