@@ -1,0 +1,5 @@
+ALTER TABLE messages
+ADD COLUMN likes INT NOT NULL DEFAULT 0,
+ADD COLUMN reactions JSON NULL,
+ADD COLUMN voice_note_path VARCHAR(255) NULL,
+ADD COLUMN profile_snapshot JSON NULL;

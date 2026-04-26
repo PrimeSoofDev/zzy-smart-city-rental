@@ -43,6 +43,40 @@ $logoUrl = SiteSetting::get('logo_url');
             .sidebar-collapsed { transform: translateX(-100%); width: 256px !important; }
         }
     </style>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <style>
+        /* Dark Mode Overrides */
+        html.dark body { background-color: #0f172a !important; color: #f8fafc !important; }
+        html.dark header, html.dark .bg-white { background-color: #1e293b !important; color: #f8fafc !important; border-color: #334155 !important; }
+        html.dark .text-gray-900, html.dark .text-gray-800, html.dark .text-gray-700, html.dark .text-gray-600, html.dark .text-slate-800, html.dark .text-slate-900 { color: #f1f5f9 !important; }
+        html.dark .text-gray-500, html.dark .text-slate-500 { color: #94a3b8 !important; }
+        html.dark .border-gray-100, html.dark .border-gray-200, html.dark .border-gray-300 { border-color: #334155 !important; }
+        html.dark input, html.dark textarea, html.dark select { background-color: #0f172a !important; color: white !important; border-color: #334155 !important; }
+        html.dark .bg-gray-50, html.dark .bg-gray-100, html.dark .bg-slate-50 { background-color: #0f172a !important; }
+        html.dark .shadow-sm, html.dark .shadow, html.dark .shadow-md, html.dark .shadow-lg, html.dark .shadow-xl { box-shadow: none !important; border: 1px solid #334155 !important; }
+        html.dark a:hover.bg-gray-50 { background-color: #334155 !important; color: white !important; }
+        html.dark .bubble-in { background-color: #334155 !important; color: #f8fafc !important; border-color: #475569 !important; }
+        html.dark .bubble-out { background-color: #054a40 !important; color: #f8fafc !important; }
+        html.dark .message-actions, html.dark .reaction-bar { background-color: #1e293b !important; border: 1px solid #334155 !important; }
+    </style>
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+    </script>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 overflow-x-hidden">
 
@@ -159,12 +193,19 @@ $logoUrl = SiteSetting::get('logo_url');
                         <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-violet-500 rounded-full border-2 border-white"></span>
                     <?php endif; ?>
                 </a>
-                <a href="<?= APP_URL ?>/notifications" class="relative text-gray-400 hover:text-gray-600 transition p-2 mr-2">
-                    <i class="fas fa-bell text-xl"></i>
-                    <?php if ($unreadNotifs > 0): ?>
-                        <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                    <?php endif; ?>
-                </a>
+                <a href="<?= APP_URL ?>/notifications" class="flex items-center justify-between px-4 py-3 rounded-xl transition-all hover:bg-slate-800 hover:text-white <?= (strpos($_SERVER['REQUEST_URI'], 'notifications') !== false) ? 'active-link' : '' ?>">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-bell w-5 text-violet-400"></i> <span class="sidebar-text">Notifications</span>
+                </div>
+                <?php if ($unreadNotifs > 0): ?>
+                    <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><?= $unreadNotifs ?></span>
+                <?php endif; ?>
+            </a>
+                
+                <button onclick="toggleDarkMode()" class="relative p-2 text-gray-500 hover:text-blue-600 cursor-pointer transition-colors focus:outline-none" title="Toggle Dark Mode">
+                    <i class="fas fa-sun text-xl dark:hidden"></i>
+                    <i class="fas fa-moon text-xl hidden dark:inline-block"></i>
+                </button>
                     <div class="relative group">
                     <button class="flex items-center gap-3 pl-4 border-l border-gray-200 focus:outline-none">
                         <div class="text-right hidden sm:block">

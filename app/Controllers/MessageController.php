@@ -274,4 +274,27 @@ class MessageController extends Controller {
         echo json_encode(['success' => false, 'error' => 'Upload failed']);
         exit;
     }
+
+    public function react() {
+        if (!isset($_SESSION['user_id'])) exit;
+        
+        $messageId = $_POST['message_id'] ?? null;
+        $action = $_POST['action'] ?? null; // 'love' or 'emoji'
+        $emoji = $_POST['emoji'] ?? null;
+        
+        if ($messageId && $action) {
+            if ($action === 'love') {
+                Message::addLike($messageId);
+            } elseif ($action === 'emoji' && $emoji) {
+                Message::addEmoji($messageId, $emoji);
+            }
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true]);
+            exit;
+        }
+        
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Invalid parameters']);
+        exit;
+    }
 }

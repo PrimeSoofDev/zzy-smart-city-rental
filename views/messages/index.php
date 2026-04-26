@@ -98,6 +98,37 @@
         50% { opacity: 0.5; transform: scale(1.2); }
         100% { opacity: 1; transform: scale(1); }
     }
+    .reaction-bar {
+        position: absolute;
+        bottom: -15px;
+        right: 10px;
+        background: white;
+        border-radius: 12px;
+        padding: 2px 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        display: flex;
+        gap: 4px;
+        font-size: 10px;
+        z-index: 10;
+        cursor: pointer;
+    }
+    .message-actions {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        display: none;
+        background: white;
+        border-radius: 20px;
+        padding: 4px 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        gap: 8px;
+        z-index: 20;
+    }
+    .bubble-in .message-actions { right: -60px; }
+    .bubble-out .message-actions { left: -60px; }
+    .bubble:hover .message-actions { display: flex; }
+    .action-btn { cursor: pointer; transition: transform 0.1s; }
+    .action-btn:hover { transform: scale(1.2); }
 </style>
 
 <div class="h-[calc(100vh-100px)] max-h-[800px] max-w-6xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 flex overflow-hidden">
@@ -376,15 +407,54 @@
                 contentHtml = `<p class="text-sm break-words whitespace-pre-wrap">${escapeHtml(msg.message || '')}</p>`;
             }
 
+            // Render Profile Snapshot if available (mostly for incoming, but can show for all)
+            let profileHtml = '';
+            if (msg.profile_snapshot) {
+                try {
+                    const profile = JSON.parse(msg.profile_snapshot);
+                    const init = profile.username ? profile.username.substring(0, 1).toUpperCase() : '?';
+                    profileHtml = `
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold shadow-sm">
+                                ${init}
+                            </div>
+                            <span class="text-[11px] font-bold text-gray-700">${profile.username || 'User'}</span>
+                        </div>
+                    `;
+                } catch(e) {}
+            }
+
             const tickColor = msg.is_read ? 'text-[#34b7f1]' : 'text-gray-400';
             const bubbleClass = isMe ? 'bubble bubble-out' : 'bubble bubble-in';
 
+            // Render Reactions
+            let reactionsHtml = '';
+            let emojisArr = [];
+            if (msg.reactions) {
+                try { emojisArr = JSON.parse(msg.reactions); } catch(e) {}
+            }
+            if (msg.likes > 0 || emojisArr.length > 0) {
+                let rContent = '';
+                if (msg.likes > 0) rContent += `❤️ ${msg.likes} `;
+                emojisArr.forEach(e => { rContent += e + ' '; });
+                reactionsHtml = `<div class="reaction-bar">${rContent}</div>`;
+            }
+
             html += `
-                <div class="${bubbleClass} animate-fade-in">
-                    ${contentHtml}
-                    <div class="text-[10px] ${isMe ? 'text-gray-500' : 'text-gray-400'} text-right mt-1 flex items-center justify-end gap-1">
-                        ${timeStr}
-                        ${isMe ? `<i class="fas fa-check-double ${tickColor}"></i>` : ''}
+                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} animate-fade-in relative">
+                    <div class="${bubbleClass}">
+                        ${profileHtml}
+                        ${contentHtml}
+                        <div class="text-[10px] ${isMe ? 'text-gray-500' : 'text-gray-400'} text-right mt-1 flex items-center justify-end gap-1">
+                            ${timeStr}
+                            ${isMe ? `<i class="fas fa-check-double ${tickColor}"></i>` : ''}
+                        </div>
+                        ${reactionsHtml}
+                        <div class="message-actions">
+                            <span class="action-btn" onclick="reactMessage(${msg.id}, 'love')">❤️</span>
+                            <span class="action-btn" onclick="reactMessage(${msg.id}, 'emoji', '👍')">👍</span>
+                            <span class="action-btn" onclick="reactMessage(${msg.id}, 'emoji', '😂')">😂</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -448,6 +518,26 @@
                 audio.currentTime = pct * audio.duration;
             });
         });
+    }
+
+    async function reactMessage(messageId, action, emoji = null) {
+        const formData = new FormData();
+        formData.append('message_id', messageId);
+        formData.append('action', action);
+        if (emoji) formData.append('emoji', emoji);
+
+        try {
+            const response = await fetch('<?= APP_URL ?>/messages/react', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchMessages(false); // Refresh messages without forcing scroll to bottom
+            }
+        } catch (error) {
+            console.error('Error reacting to message:', error);
+        }
     }
 
     messageInput.addEventListener('input', function() {

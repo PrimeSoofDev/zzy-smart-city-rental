@@ -119,6 +119,7 @@ $router->add('messages', 'MessageController', 'index');
 $router->add('messages/fetch', 'MessageController', 'fetchThread');
 $router->add('messages/send', 'MessageController', 'send');
 $router->add('messages/uploadFile', 'MessageController', 'uploadFile');
+$router->add('messages/react', 'MessageController', 'react');
 $router->add('api/otp/send', 'OtpController', 'sendOtp');
 $router->add('api/otp/verify', 'OtpController', 'verifyOtp');
 

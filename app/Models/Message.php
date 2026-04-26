@@ -2,11 +2,19 @@
 // app/Models/Message.php
 
 class Message {
-    public static function send($senderId, $receiverId, $message, $type = 'text', $attachmentId = null) {
+    public static function send($senderId, $receiverId, $message, $type = 'text', $attachmentId = null, $profileSnapshot = null) {
         $db = Database::getInstance()->getConnection();
         $attachmentId = !empty($attachmentId) ? $attachmentId : null;
-        $stmt = $db->prepare("INSERT INTO messages (sender_id, receiver_id, message, type, attachment_id) VALUES (?, ?, ?, ?, ?)");
-        return $stmt->execute([$senderId, $receiverId, $message, $type, $attachmentId]);
+        
+        if ($profileSnapshot === null) {
+            $profile = [];
+            if (isset($_SESSION['username'])) $profile['username'] = $_SESSION['username'];
+            if (isset($_SESSION['avatar'])) $profile['avatar'] = $_SESSION['avatar'];
+            $profileSnapshot = !empty($profile) ? json_encode($profile) : null;
+        }
+
+        $stmt = $db->prepare("INSERT INTO messages (sender_id, receiver_id, message, type, attachment_id, likes, reactions, voice_note_path, profile_snapshot) VALUES (?, ?, ?, ?, ?, 0, NULL, NULL, ?)");
+        return $stmt->execute([$senderId, $receiverId, $message, $type, $attachmentId, $profileSnapshot]);
     }
 
     public static function createAttachment($filePath, $fileName, $fileType, $fileSize) {
@@ -20,7 +28,7 @@ class Message {
     public static function getThread($user1, $user2) {
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare("
-            SELECT m.*, u.username as sender_name, a.file_path, a.file_name, a.file_type, a.file_size
+            SELECT m.*, u.username as sender_name, a.file_path, a.file_name, a.file_type, a.file_size, m.profile_snapshot
             FROM messages m
             JOIN users u ON m.sender_id = u.id
             LEFT JOIN attachments a ON m.attachment_id = a.id
@@ -45,4 +53,25 @@ class Message {
         $stmt = $db->prepare("UPDATE messages SET is_read = 1 WHERE sender_id = ? AND receiver_id = ?");
         return $stmt->execute([$senderId, $receiverId]);
     }
+
+    public static function addLike($messageId) {
+        $db = Database::getInstance()->getConnection();
+        $stmt = $db->prepare("UPDATE messages SET likes = likes + 1 WHERE id = ?");
+        return $stmt->execute([$messageId]);
+    }
+
+    public static function addEmoji($messageId, $emoji) {
+        $db = Database::getInstance()->getConnection();
+        // Fetch current emojis JSON array
+                $stmt = $db->prepare("SELECT reactions FROM messages WHERE id = ?");
+        $stmt->execute([$messageId]);
+        $current = $stmt->fetchColumn();
+        $emojis = $current ? json_decode($current, true) : [];
+        if (!is_array($emojis)) $emojis = [];
+        $emojis[] = $emoji;
+        $newJson = json_encode($emojis);
+                $update = $db->prepare("UPDATE messages SET reactions = ? WHERE id = ?");
+        return $update->execute([$newJson, $messageId]);
+    }
 }
+
