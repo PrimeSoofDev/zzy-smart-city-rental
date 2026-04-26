@@ -46,7 +46,7 @@
                                     <i class="fas fa-exclamation-triangle mr-1"></i> Raise a Dispute
                                 </button>
                                 <button onclick="openReviewModal(<?= $item['request_id'] ?>, <?= $item['tenant_id'] ?>, '<?= htmlspecialchars($item['tenant_name']) ?>')" class="w-full px-4 py-3 bg-blue-50 text-blue-600 rounded-xl text-sm font-bold hover:bg-blue-100 transition-all border border-blue-100 shadow-sm">
-                                    <i class="fas fa-star mr-1"></i> Rate Tenant
+                                    <i class="fas fa-star mr-1"></i> Write Review
                                 </button>
                             </div>
                         <?php endif; ?>
@@ -98,7 +98,7 @@
             <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mb-6">
                 <i class="fas fa-star text-2xl"></i>
             </div>
-            <h3 class="text-2xl font-black text-slate-900 mb-2">Rate Tenant</h3>
+            <h3 class="text-2xl font-black text-slate-900 mb-2">Write Review</h3>
             <p class="text-slate-500 text-sm mb-6">Share your experience with <span id="modal-tenant-name" class="font-bold text-slate-900"></span>.</p>
             
             <form action="<?= APP_URL ?>/review/submit" method="POST">
@@ -136,13 +136,8 @@
 <script>
     function openDisputeModal(requestId, title) {
         document.getElementById('modal-request-id').value = requestId;
-        document.getElementById('modal-property-title').innerText = title;
-        document.getElementById('dispute-modal').classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function openDisputeModal(requestId, title) {
-        document.getElementById('modal-request-id').value = requestId;
+        const titleEl = document.getElementById('modal-property-title');
+        if (titleEl) titleEl.innerText = title;
         document.getElementById('dispute-modal').classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }

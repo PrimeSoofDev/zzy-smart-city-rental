@@ -335,7 +335,7 @@ class LandlordController extends Controller {
         $userId = $_SESSION['user_id'];
 
         $stmt = $db->prepare("
-            SELECT t.*, p.title as property_title, u.username as tenant_name, rr.status as request_status
+            SELECT t.*, p.title as property_title, u.username as tenant_name, t.user_id as tenant_id, rr.status as request_status
             FROM transactions t
             JOIN rental_requests rr ON t.request_id = rr.id
             JOIN properties p ON rr.property_id = p.id

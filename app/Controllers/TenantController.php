@@ -332,10 +332,11 @@ class TenantController extends Controller {
         $userId = $_SESSION['user_id'];
 
         $stmt = $db->prepare("
-            SELECT t.*, p.title as property_title, p.address as property_address, rr.status as request_status
+            SELECT t.*, p.title as property_title, p.address as property_address, p.landlord_id, lu.username as landlord_name, rr.status as request_status
             FROM transactions t
             JOIN rental_requests rr ON t.request_id = rr.id
             JOIN properties p ON rr.property_id = p.id
+            JOIN users lu ON p.landlord_id = lu.id
             WHERE t.user_id = ? AND t.status IN ('escrow_hold', 'released', 'refunded', 'completed')
         ");
         $stmt->execute([$userId]);
