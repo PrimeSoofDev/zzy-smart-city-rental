@@ -1,6 +1,108 @@
 <?php
 class LawyerController extends Controller {
 
+    public function apiDashboard() {
+        ob_start();
+        header('Content-Type: application/json');
+        try {
+            $userId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? null;
+            if (!$userId) {
+                ob_clean();
+                echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+                exit;
+            }
+
+            $db = Database::getInstance()->getConnection();
+            
+            $totalPaidRequests = $db->query("SELECT COUNT(*) FROM rental_requests WHERE status = 'paid'")->fetchColumn();
+            $myDrafts = $db->prepare("SELECT COUNT(*) FROM agreements WHERE lawyer_id = ? AND status = 'draft'");
+            $myDrafts->execute([$userId]);
+            $myDrafts = $myDrafts->fetchColumn();
+
+            $mySigned = $db->prepare("SELECT COUNT(*) FROM agreements WHERE lawyer_id = ? AND status = 'signed'");
+            $mySigned->execute([$userId]);
+            $mySigned = $mySigned->fetchColumn();
+
+            $recentRequests = $db->query("
+                SELECT rr.*, p.title AS property_title, p.price, p.address,
+                       tu.username AS tenant_name, lu.username AS landlord_name
+                FROM rental_requests rr
+                JOIN properties p ON rr.property_id = p.id
+                JOIN users tu ON rr.tenant_id = tu.id
+                JOIN users lu ON p.landlord_id = lu.id
+                WHERE rr.status = 'paid'
+                ORDER BY rr.request_date DESC
+                LIMIT 5
+            ")->fetchAll();
+
+            $recentAgreements = $db->prepare("
+                SELECT ag.*, p.title AS property_title, tu.username AS tenant_name
+                FROM agreements ag
+                JOIN rental_requests rr ON ag.request_id = rr.id
+                JOIN properties p ON rr.property_id = p.id
+                JOIN users tu ON rr.tenant_id = tu.id
+                WHERE ag.lawyer_id = ?
+                ORDER BY ag.id DESC
+                LIMIT 5
+            ");
+            $recentAgreements->execute([$userId]);
+            $recentAgreements = $recentAgreements->fetchAll();
+
+            ob_clean();
+            echo json_encode([
+                'success' => true,
+                'stats' => [
+                    'paid_requests' => $totalPaidRequests,
+                    'drafts' => $myDrafts,
+                    'signed' => $mySigned,
+                    'total' => (int)$myDrafts + (int)$mySigned
+                ],
+                'recentRequests' => $recentRequests,
+                'recentAgreements' => $recentAgreements
+            ]);
+        } catch (Throwable $e) {
+            ob_clean();
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    public function apiRequests() {
+        header('Content-Type: application/json');
+        $db = Database::getInstance()->getConnection();
+        $filter = $_GET['filter'] ?? 'pending';
+
+        if ($filter === 'pending') {
+            $stmt = $db->query("
+                SELECT rr.*, p.title AS property_title, p.price, p.address, p.property_type,
+                       tu.username AS tenant_name, lu.username AS landlord_name
+                FROM rental_requests rr
+                JOIN properties p ON rr.property_id = p.id
+                JOIN users tu ON rr.tenant_id = tu.id
+                JOIN users lu ON p.landlord_id = lu.id
+                WHERE rr.status = 'paid'
+                AND NOT EXISTS (SELECT 1 FROM agreements ag WHERE ag.request_id = rr.id)
+                ORDER BY rr.request_date DESC
+            ");
+        } else {
+            $stmt = $db->query("
+                SELECT rr.*, p.title AS property_title, p.price, p.address, p.property_type,
+                       tu.username AS tenant_name, lu.username AS landlord_name,
+                       ag.status AS agreement_status
+                FROM rental_requests rr
+                JOIN properties p ON rr.property_id = p.id
+                JOIN users tu ON rr.tenant_id = tu.id
+                JOIN users lu ON p.landlord_id = lu.id
+                JOIN agreements ag ON ag.request_id = rr.id
+                WHERE rr.status = 'paid'
+                ORDER BY rr.request_date DESC
+            ");
+        }
+        $requests = $stmt->fetchAll();
+        echo json_encode(['success' => true, 'requests' => $requests]);
+        exit;
+    }
+
     private function requireLawyer() {
         RbacMiddleware::check(['Lawyer']);
     }

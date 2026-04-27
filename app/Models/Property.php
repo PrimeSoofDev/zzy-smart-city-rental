@@ -107,4 +107,15 @@ class Property extends Model {
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
+    public function getByLandlord($landlordId) {
+        $stmt = $this->db->prepare("
+            SELECT p.*, pi.image_url as primary_image
+            FROM properties p
+            LEFT JOIN property_images pi ON p.id = pi.property_id AND pi.is_primary = 1
+            WHERE p.landlord_id = ?
+            ORDER BY p.created_at DESC
+        ");
+        $stmt->execute([$landlordId]);
+        return $stmt->fetchAll();
+    }
 }

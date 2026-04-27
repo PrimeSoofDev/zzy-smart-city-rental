@@ -1,4 +1,13 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
 require_once '../config/config.php';
 require_once '../app/Core/Database.php';
 require_once '../app/Core/Controller.php';
@@ -116,10 +125,19 @@ $router->add('notifications', 'NotificationController', 'index');
 $router->add('notifications/mark-read', 'NotificationController', 'markRead');
 
 $router->add('messages', 'MessageController', 'index');
+$router->add('api/messages/contacts', 'MessageController', 'apiContacts');
+$router->add('api/messages/thread', 'MessageController', 'apiThread');
+$router->add('api/landlord/dashboard', 'LandlordController', 'apiDashboard');
+$router->add('api/staff/dashboard', 'StaffController', 'apiDashboard');
+$router->add('api/lawyer/dashboard', 'LawyerController', 'apiDashboard');
+$router->add('api/lawyer/requests', 'LawyerController', 'apiRequests');
+$router->add('api/admin/stats', 'AdminController', 'apiStats');
+$router->add('api/profile', 'ProfileController', 'apiProfile');
 $router->add('messages/fetch', 'MessageController', 'fetchThread');
 $router->add('messages/send', 'MessageController', 'send');
 $router->add('messages/uploadFile', 'MessageController', 'uploadFile');
 $router->add('messages/react', 'MessageController', 'react');
+$router->add('api/properties', 'PropertyController', 'apiIndex');
 $router->add('api/otp/send', 'OtpController', 'sendOtp');
 $router->add('api/otp/verify', 'OtpController', 'verifyOtp');
 

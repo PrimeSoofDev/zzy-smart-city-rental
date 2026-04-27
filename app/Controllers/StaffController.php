@@ -1,6 +1,54 @@
 <?php
 class StaffController extends Controller {
 
+    public function apiDashboard() {
+        header('Content-Type: application/json');
+        $userId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? null;
+        if (!$userId) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $db = Database::getInstance()->getConnection();
+        
+        $totalPending  = $db->query("SELECT COUNT(*) FROM properties WHERE status = 'pending_verification'")->fetchColumn();
+        $totalApproved = $db->query("SELECT COUNT(*) FROM property_verifications WHERE result = 'approved' AND staff_id = $userId")->fetchColumn();
+        $totalRejected = $db->query("SELECT COUNT(*) FROM property_verifications WHERE result = 'rejected' AND staff_id = $userId")->fetchColumn();
+        
+        $recentPending = $db->query("
+            SELECT p.*, u.username AS landlord_name
+            FROM properties p
+            JOIN users u ON p.landlord_id = u.id
+            WHERE p.status = 'pending_verification'
+            ORDER BY p.created_at DESC
+            LIMIT 5
+        ")->fetchAll();
+
+        $recentActivity = $db->prepare("
+            SELECT pv.*, p.title, p.address
+            FROM property_verifications pv
+            JOIN properties p ON pv.property_id = p.id
+            WHERE pv.staff_id = ?
+            ORDER BY pv.verified_at DESC
+            LIMIT 5
+        ");
+        $recentActivity->execute([$userId]);
+        $recentActivity = $recentActivity->fetchAll();
+
+        echo json_encode([
+            'success' => true,
+            'stats' => [
+                'pending' => $totalPending,
+                'approved' => $totalApproved,
+                'rejected' => $totalRejected,
+                'total' => (int)$totalApproved + (int)$totalRejected
+            ],
+            'recentPending' => $recentPending,
+            'recentActivity' => $recentActivity
+        ]);
+        exit;
+    }
+
     private function requireStaff() {
         RbacMiddleware::check(['Staff']);
     }

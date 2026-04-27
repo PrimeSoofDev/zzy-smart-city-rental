@@ -25,4 +25,9 @@ class User extends Model {
         $stmt->execute([$userId]);
         return $stmt->fetchColumn();
     }
+    public function findById($id) {
+        $stmt = $this->db->prepare("SELECT id, username, email, phone, status, created_at FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
 }

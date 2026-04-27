@@ -1,6 +1,31 @@
 <?php
 class LandlordController extends Controller {
 
+    public function apiDashboard() {
+        header('Content-Type: application/json');
+        $userId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? null;
+        if (!$userId) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $db = Database::getInstance()->getConnection();
+        $propModel = new Property();
+        $myProperties = $propModel->getByLandlord($userId);
+
+        // Check if bank details are set
+        $stmt = $db->prepare("SELECT subaccount_code FROM landlord_profiles WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $bankInfo = $stmt->fetch();
+
+        echo json_encode([
+            'success' => true,
+            'properties' => $myProperties,
+            'bankSetupRequired' => empty($bankInfo['subaccount_code'])
+        ]);
+        exit;
+    }
+
     private function checkVerification() {
         $userId = $_SESSION['user_id'] ?? null;
         if (!$userId) {

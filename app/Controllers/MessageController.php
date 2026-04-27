@@ -151,6 +151,56 @@ class MessageController extends Controller {
         require_once "../views/layouts/{$layoutPrefix}_layout_end.php";
     }
 
+    public function apiContacts() {
+        header('Content-Type: application/json');
+        
+        $userId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? null;
+        if (!$userId) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $role = $_SESSION['role'] ?? $_GET['role'] ?? 'Tenant';
+        $db = Database::getInstance()->getConnection();
+        $contacts = [];
+
+        // Determine Contacts based on Role
+        if ($role === 'Tenant') {
+            $stmt = $db->prepare("
+                SELECT p.landlord_id as id, u.username as name, 'Landlord' as type,
+                       (SELECT message FROM messages WHERE (sender_id = u.id AND receiver_id = ?) OR (sender_id = ? AND receiver_id = u.id) ORDER BY created_at DESC LIMIT 1) as last_message,
+                       (SELECT created_at FROM messages WHERE (sender_id = u.id AND receiver_id = ?) OR (sender_id = ? AND receiver_id = u.id) ORDER BY created_at DESC LIMIT 1) as last_time
+                FROM rental_requests rr
+                JOIN properties p ON rr.property_id = p.id
+                JOIN users u ON p.landlord_id = u.id
+                WHERE rr.tenant_id = ? AND rr.status IN ('paid', 'completed')
+                GROUP BY u.id
+            ");
+            $stmt->execute([$userId, $userId, $userId, $userId, $userId]);
+            $contacts = $stmt->fetchAll();
+        } elseif ($role === 'Admin') {
+             $stmt = $db->query("
+                SELECT u.id, u.username as name, r.role_name as type
+                FROM users u
+                JOIN user_roles ur ON u.id = ur.user_id
+                JOIN roles r ON ur.role_id = r.id
+                WHERE r.role_name IN ('Staff', 'Lawyer')
+                ORDER BY u.username
+            ");
+            $contacts = $stmt->fetchAll();
+        }
+
+        // Add unread counts and last message defaults
+        foreach ($contacts as &$contact) {
+            $cStmt = $db->prepare("SELECT COUNT(*) FROM messages WHERE sender_id = ? AND receiver_id = ? AND is_read = 0");
+            $cStmt->execute([$contact['id'], $userId]);
+            $contact['unread'] = (int)$cStmt->fetchColumn();
+            $contact['last_message'] = $contact['last_message'] ?? 'No messages yet';
+            $contact['last_time'] = $contact['last_time'] ?? '';
+        }
+
+        echo json_encode($contacts);
+    }
     public function fetchThread() {
         if (!isset($_SESSION['user_id'])) exit;
         $userId = $_SESSION['user_id'];
@@ -166,6 +216,22 @@ class MessageController extends Controller {
         echo json_encode(['success' => false]);
     }
 
+    public function apiThread() {
+        header('Content-Type: application/json');
+        
+        $userId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? null;
+        $contactId = $_GET['contact_id'] ?? null;
+
+        if (!$userId || !$contactId) {
+            echo json_encode(['success' => false, 'error' => 'Missing parameters']);
+            exit;
+        }
+
+        Message::markThreadAsRead($contactId, $userId);
+        $thread = Message::getThread($userId, $contactId);
+        
+        echo json_encode($thread);
+    }
     public function send() {
         if (!isset($_SESSION['user_id'])) exit;
         $userId = $_SESSION['user_id'];

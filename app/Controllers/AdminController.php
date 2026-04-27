@@ -1,6 +1,43 @@
 <?php
 class AdminController extends Controller {
 
+    public function apiStats() {
+        header('Content-Type: application/json');
+        $userId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? null;
+        if (!$userId) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $db = Database::getInstance()->getConnection();
+        
+        $totalUsers = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
+        $totalProperties = $db->query("SELECT COUNT(*) FROM properties")->fetchColumn();
+        $pendingVerifications = $db->query("SELECT COUNT(*) FROM properties WHERE status = 'pending_verification'")->fetchColumn();
+        
+        $recentUsers = $db->query("
+            SELECT u.username, r.role_name 
+            FROM users u 
+            JOIN user_roles ur ON u.id = ur.user_id 
+            JOIN roles r ON ur.role_id = r.id 
+            ORDER BY u.id DESC 
+            LIMIT 5
+        ")->fetchAll();
+
+        echo json_encode([
+            'success' => true,
+            'stats' => [
+                'totalUsers' => $totalUsers,
+                'totalProperties' => $totalProperties,
+                'pendingVerifications' => $pendingVerifications,
+                'totalVolume' => $totalVolume,
+                'escrowFunds' => $escrowFunds
+            ],
+            'recentUsers' => $recentUsers
+        ]);
+        exit;
+    }
+
     private function renderAdminView($view, $data = []) {
         require_once "../views/layouts/admin_layout_start.php";
         $this->view('admin/pages/' . $view, $data);
@@ -441,9 +478,34 @@ class AdminController extends Controller {
             
             // Handle regular settings
             if (isset($_POST['settings'])) {
+                $oldUrl = APP_URL;
                 foreach ($_POST['settings'] as $key => $value) {
                     $stmt = $db->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = ?");
                     $stmt->execute([$value, $key]);
+                }
+
+                // Special handling for Site URL change
+                if (isset($_POST['settings']['site_url']) && $_POST['settings']['site_url'] !== $oldUrl) {
+                    $newUrl = rtrim($_POST['settings']['site_url'], '/');
+                    $newBasePath = parse_url($newUrl, PHP_URL_PATH) ?: '';
+                    
+                    // 1. Generate the config file
+                    $configContent = "<?php\nreturn '" . addslashes($newUrl) . "';";
+                    file_put_contents('../config/generated_url.php', $configContent);
+
+                    // 2. Update .htaccess dynamically
+                    $htaccessFile = '../.htaccess';
+                    if (file_exists($htaccessFile)) {
+                        $newHtaccess = "Options -Indexes\nRewriteEngine On\n\n";
+                        $newHtaccess .= "# If the request is not already for the public folder, rewrite it to public/\n";
+                        if (!empty($newBasePath)) {
+                            $newHtaccess .= "RewriteCond %{REQUEST_URI} !^" . $newBasePath . "/public/\n";
+                        } else {
+                            $newHtaccess .= "RewriteCond %{REQUEST_URI} !^/public/\n";
+                        }
+                        $newHtaccess .= "RewriteRule ^(.*)$ public/$1 [L]";
+                        file_put_contents($htaccessFile, $newHtaccess);
+                    }
                 }
             }
 

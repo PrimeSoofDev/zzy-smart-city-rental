@@ -24,6 +24,13 @@ class PropertyController extends Controller {
         ]);
     }
 
+    public function apiIndex() {
+        header('Content-Type: application/json');
+        $propModel = new Property();
+        $properties = $propModel->getAllApproved();
+        echo json_encode($properties);
+    }
+
     public function findHomes() {
         $location = $_GET['location'] ?? 'Port Harcourt';
         $type = $_GET['type'] ?? null;

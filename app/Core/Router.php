@@ -15,9 +15,11 @@ class Router {
         // 2. Log the raw URI for debugging (you can check this in Apache logs)
         // error_log("Raw URI: " . $url);
 
-        // 3. Handle the base directory manually for XAMPP subfolder
-        // We remove /zzy_rental and any other base folder prefixes
-        $url = str_replace('/zzy_rental', '', $url);
+        // 3. Handle the base directory manually for XAMPP subfolder or custom domains
+        // We remove the base folder prefix dynamically
+        if (defined('APP_BASE_PATH') && !empty(APP_BASE_PATH)) {
+            $url = str_replace(APP_BASE_PATH, '', $url);
+        }
 
         // 4. Clean the URL
         $url = trim($url, '/');
@@ -59,7 +61,7 @@ class Router {
         echo "<h1 style='color: #c00;'>404 - Page Not Found</h1>";
         echo "<p>The system is looking for the route: <b style='background: #eee; padding: 2px 5px;'>" . htmlspecialchars($url) . "</b></p>";
         echo "<p>This means your URL <code>" . htmlspecialchars($_SERVER['REQUEST_URI']) . "</code> was processed into the route above.</p>";
-        echo "<hr><small>Try visiting <a href='/zzy_rental/'>Home</a> or <a href='/zzy_rental/auth/login'>Login</a></small>";
+        echo "<hr><small>Try visiting <a href='" . APP_URL . "/'>Home</a> or <a href='" . APP_URL . "/auth/login'>Login</a></small>";
         echo "</div>";
         exit;
     }

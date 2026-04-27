@@ -68,6 +68,15 @@
                                 <input type="number" step="0.1" name="settings[commission_rate]" value="<?= $settings['commission_rate'] ?? '5.0' ?>"
                                        class="w-full px-5 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-400">
                             </div>
+                            <div class="space-y-2 md:col-span-2">
+                                <label class="text-sm font-bold text-gray-700">Website Base URL</label>
+                                <input type="url" name="settings[site_url]" value="<?= htmlspecialchars($settings['site_url'] ?? APP_URL) ?>"
+                                       placeholder="https://yourdomain.com/subdir"
+                                       class="w-full px-5 py-3 bg-blue-50/50 border-2 border-blue-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-gray-400 font-mono text-sm">
+                                <p class="text-[10px] text-blue-500 mt-1 flex items-center gap-1">
+                                    <i class="fas fa-exclamation-triangle"></i> Changing this will update all system links and routing. Ensure it matches your live server path.
+                                </p>
+                            </div>
                         </div>
                     </div>
 

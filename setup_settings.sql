@@ -11,4 +11,5 @@ INSERT IGNORE INTO system_settings (setting_key, setting_value, description) VAL
 ('platform_phone', '+234 800 123 4567', 'Official support contact number'),
 ('commission_rate', '5.0', 'Percentage commission on each successful rental'),
 ('maintenance_mode', '0', '0 = Off, 1 = On'),
-('registration_enabled', '1', 'Allow new users to sign up');
+('registration_enabled', '1', 'Allow new users to sign up'),
+('site_url', 'http://localhost:8080/zzy_rental', 'The base URL of the website');

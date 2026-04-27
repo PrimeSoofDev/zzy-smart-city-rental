@@ -1,5 +1,25 @@
 <?php
 class ProfileController extends Controller {
+    
+    public function apiProfile() {
+        header('Content-Type: application/json');
+        $userId = $_SESSION['user_id'] ?? $_GET['user_id'] ?? null;
+        if (!$userId) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $userModel = new User();
+        $user = $userModel->findById($userId);
+        $role = $userModel->getRole($userId);
+
+        echo json_encode([
+            'success' => true,
+            'user' => $user,
+            'role' => $role
+        ]);
+        exit;
+    }
 
     public function edit() {
         if (!isset($_SESSION['user_id'])) $this->redirect('auth/login');
