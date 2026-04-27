@@ -15,10 +15,11 @@ class Router {
         // 2. Log the raw URI for debugging (you can check this in Apache logs)
         // error_log("Raw URI: " . $url);
 
-        // 3. Handle the base directory manually for XAMPP subfolder or custom domains
-        // We remove the base folder prefix dynamically
+        // We remove the base folder prefix dynamically if it exists at the start of the URL
         if (defined('APP_BASE_PATH') && !empty(APP_BASE_PATH)) {
-            $url = str_replace(APP_BASE_PATH, '', $url);
+            if (strpos($url, APP_BASE_PATH) === 0) {
+                $url = substr($url, strlen(APP_BASE_PATH));
+            }
         }
 
         // 4. Clean the URL

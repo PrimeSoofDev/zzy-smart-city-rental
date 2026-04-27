@@ -17,8 +17,15 @@ if (file_exists($_generatedUrlFile)) {
     define('APP_URL', 'http://localhost:8080/zzy_rental');
 }
 
-// Derive the base path from APP_URL (e.g. "/zzy_rental" or "" for root domains)
-define('APP_BASE_PATH', parse_url(APP_URL, PHP_URL_PATH) ?: '');
+// Derive the base path from the actual script location to ensure routing works 
+// even if APP_URL is configured for a different domain (e.g. production vs local).
+// SCRIPT_NAME is typically something like /zzy_rental/public/index.php
+$_scriptPath = $_SERVER['SCRIPT_NAME'] ?? '';
+$_basePath = dirname(dirname($_scriptPath)); // Go up two levels from /public/index.php
+if ($_basePath === DIRECTORY_SEPARATOR || $_basePath === '.') {
+    $_basePath = '';
+}
+define('APP_BASE_PATH', $_basePath);
 
 define('GOOGLE_MAPS_API_KEY', 'AIzaSyClaCBu0X-e_kdvTEPUtVsfPmwFD1iCYiI');
 
